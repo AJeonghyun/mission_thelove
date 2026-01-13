@@ -21,8 +21,8 @@ export default function StageIntro({
   onNext,
 }: StageIntroProps) {
   return (
-    <section className="flex flex-1 flex-col items-center gap-6">
-      <div className="relative w-full overflow-hidden rounded-3xl bg-black shadow-2xl aspect-[4/3]">
+    <section className="flex flex-1 flex-col items-center justify-between gap-6 min-h-0">
+      <div className="relative w-full max-h-[70vh] overflow-hidden rounded-3xl bg-black shadow-2xl aspect-[4/3]">
         <Image
           src={images[introIndex]}
           alt={`${title} intro ${introIndex + 1}`}

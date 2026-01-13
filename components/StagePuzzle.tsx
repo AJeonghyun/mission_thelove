@@ -146,7 +146,7 @@ export default function StagePuzzle({
             </div>
           )}
           {puzzleImage && (
-            <div className="relative mt-6 overflow-hidden rounded-2xl border border-zinc-800 bg-black aspect-[16/9]">
+            <div className="relative mt-5 w-full overflow-hidden rounded-2xl border border-zinc-800 bg-black aspect-[16/9] max-h-[42vh]">
               <Image
                 src={puzzleImage}
                 alt={`${title} puzzle`}
