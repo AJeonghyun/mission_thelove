@@ -1,0 +1,16 @@
+{
+  "name": "The Love",
+  "short_name": "The Love",
+  "description": "The Love PWA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "/next.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
