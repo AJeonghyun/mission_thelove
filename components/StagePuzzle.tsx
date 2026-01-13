@@ -141,12 +141,12 @@ export default function StagePuzzle({
                 type="button"
                 onClick={() => setShowScanner((prev) => !prev)}
               >
-                {showScanner ? '카메라 닫기' : 'QR Code Scanner'}
+                {showScanner ? '카메라 닫기' : '카메라 열기'}
               </Button>
             </div>
           )}
           {puzzleImage && (
-            <div className="relative mt-5 w-full overflow-hidden rounded-2xl border border-zinc-800 bg-black aspect-[16/9] max-h-[42vh]">
+            <div className="relative mt-5 w-full overflow-hidden rounded-2xl aspect-[16/9] max-h-[42vh]">
               <Image
                 src={puzzleImage}
                 alt={`${title} puzzle`}
@@ -213,10 +213,10 @@ export default function StagePuzzle({
           <div className="w-full">
             {showScanner && (
               <div className="mt-2 flex w-full justify-center">
-                <div className="w-full max-w-md overflow-hidden rounded-2xl border border-zinc-800 bg-black">
+                <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-zinc-800 bg-black">
                   <video
                     ref={videoRef}
-                    className="h-64 w-full object-cover"
+                    className="h-140 w-full object-cover"
                     muted
                     playsInline
                   />
