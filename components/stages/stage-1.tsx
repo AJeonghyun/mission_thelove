@@ -1,7 +1,12 @@
 import StagePuzzle from '../StagePuzzle';
 import type { StageEntry } from './types';
 
-const introImages = ['/intro1.webp', '/intro2.webp', '/intro3.webp', '/intro4.webp'];
+const introImages = [
+  '/intro1.webp',
+  '/intro2.webp',
+  '/intro3.webp',
+  '/intro4.webp',
+];
 const puzzleImage = '/game1.webp';
 const puzzleTitle = '사탄의 암호';
 const question =
