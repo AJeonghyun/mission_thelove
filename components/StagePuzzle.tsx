@@ -26,7 +26,10 @@ type StagePuzzleProps = {
   title: string;
   question: string;
   puzzleImage?: string;
-  inputMode?: 'drawer' | 'qr';
+  inputMode?: 'drawer' | 'qr' | 'coord' | 'bingo';
+  bingoBoard?: string[][];
+  bingoAnswer?: string[];
+  bingoFinalQuestion?: string;
   answer: string[];
   status: 'idle' | 'wrong' | 'cleared';
   onAnswerChange: (index: number, value: string) => void;
@@ -41,6 +44,9 @@ export default function StagePuzzle({
   question,
   puzzleImage,
   inputMode = 'drawer',
+  bingoBoard,
+  bingoAnswer = [],
+  bingoFinalQuestion,
   answer,
   status,
   onAnswerChange,
@@ -55,13 +61,58 @@ export default function StagePuzzle({
   const [shouldReset, setShouldReset] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [showScanner, setShowScanner] = useState(false);
+  const [bingoProgress, setBingoProgress] = useState(0);
+  const [wrongBingoIndex, setWrongBingoIndex] = useState<number | null>(null);
+  const [correctBingoIndex, setCorrectBingoIndex] = useState<number | null>(
+    null
+  );
+  const [bingoAlertOpen, setBingoAlertOpen] = useState(false);
+  const [bingoFinalUnlocked, setBingoFinalUnlocked] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const scannerRef = useRef<QrScanner | null>(null);
   const onAnswerChangeRef = useRef(onAnswerChange);
+  const wrongTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const correctTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isBingoFinal = inputMode === 'bingo' && bingoFinalUnlocked;
+  const displayQuestion =
+    isBingoFinal && bingoFinalQuestion ? bingoFinalQuestion : question;
 
   useEffect(() => {
     onAnswerChangeRef.current = onAnswerChange;
   }, [onAnswerChange]);
+
+  useEffect(() => {
+    if (inputMode !== 'bingo') return;
+    setBingoProgress(0);
+    setWrongBingoIndex(null);
+    setCorrectBingoIndex(null);
+    setBingoAlertOpen(false);
+    setBingoFinalUnlocked(false);
+  }, [inputMode, bingoAnswer.join('|')]);
+
+  useEffect(() => {
+    if (!bingoAnswer.length || bingoFinalUnlocked) return;
+    if (bingoProgress === bingoAnswer.length) {
+      setBingoAlertOpen(true);
+    }
+  }, [bingoAnswer.length, bingoFinalUnlocked, bingoProgress]);
+
+  useEffect(() => {
+    if (isBingoFinal) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isBingoFinal]);
+
+  useEffect(() => {
+    return () => {
+      if (wrongTimeoutRef.current) {
+        clearTimeout(wrongTimeoutRef.current);
+      }
+      if (correctTimeoutRef.current) {
+        clearTimeout(correctTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = () => {
     const result = onSubmit();
@@ -131,7 +182,7 @@ export default function StagePuzzle({
         </CardHeader>
         <CardContent className="px-8">
           <p className="whitespace-pre-line text-base text-zinc-200 sm:text-lg">
-            {question}
+            {displayQuestion}
           </p>
           {inputMode === 'qr' && (
             <div className="mt-6 flex">
@@ -315,6 +366,192 @@ export default function StagePuzzle({
             </div>
           </div>
         )}
+        {inputMode === 'coord' && (
+          <div className="w-full">
+            <div className="mt-4 flex items-center justify-center gap-3 text-3xl text-white">
+              <Input
+                value={answer[0] ?? ''}
+                onChange={(event) =>
+                  onAnswerChange(0, event.target.value.slice(-1))
+                }
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') handleSubmit();
+                }}
+                maxLength={1}
+                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
+                placeholder="?"
+              />
+              <Input
+                value={answer[1] ?? ''}
+                onChange={(event) =>
+                  onAnswerChange(1, event.target.value.slice(-1))
+                }
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') handleSubmit();
+                }}
+                maxLength={1}
+                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
+                placeholder="?"
+              />
+              <Input
+                value={answer[2] ?? ''}
+                onChange={(event) =>
+                  onAnswerChange(2, event.target.value.slice(-1))
+                }
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') handleSubmit();
+                }}
+                maxLength={1}
+                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
+                placeholder="?"
+              />
+              <Input
+                value={answer[3] ?? ''}
+                onChange={(event) =>
+                  onAnswerChange(3, event.target.value.slice(-1))
+                }
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') handleSubmit();
+                }}
+                maxLength={1}
+                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
+                placeholder="?"
+              />
+              <span className="w-4" aria-hidden />
+              <Input
+                value={answer[4] ?? ''}
+                onChange={(event) =>
+                  onAnswerChange(4, event.target.value.slice(-1))
+                }
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') handleSubmit();
+                }}
+                maxLength={1}
+                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
+                placeholder="?"
+              />
+              <span>:</span>
+              <Input
+                value={answer[5] ?? ''}
+                onChange={(event) =>
+                  onAnswerChange(5, event.target.value.slice(-1))
+                }
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') handleSubmit();
+                }}
+                maxLength={1}
+                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
+                placeholder="?"
+              />
+            </div>
+            <div className="mt-4 flex justify-center gap-3">
+              <Button
+                className="bg-white text-black hover:bg-white/90"
+                onClick={handleSubmit}
+              >
+                제출
+              </Button>
+              <Button
+                variant="outline"
+                className="border-black bg-black text-white hover:bg-white/10"
+                onClick={onReset}
+              >
+                초기화
+              </Button>
+            </div>
+          </div>
+        )}
+        {inputMode === 'bingo' && (
+          <div className="w-full">
+            {isBingoFinal ? (
+              <div className="mt-6 flex w-full flex-col items-center gap-4">
+                <Input
+                  value={answer[0] ?? ''}
+                  onChange={(event) => onAnswerChange(0, event.target.value)}
+                  className="h-12 rounded-2xl border-zinc-700 bg-zinc-950 px-4 text-center text-base text-white sm:text-lg"
+                  placeholder="말씀 구절을 입력하세요"
+                />
+                <div className="flex justify-center gap-3">
+                  <Button
+                    className="bg-white text-black hover:bg-white/90"
+                    onClick={handleSubmit}
+                  >
+                    제출
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-black bg-black text-white hover:bg-white/10"
+                    onClick={onReset}
+                  >
+                    초기화
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="mt-4 grid grid-cols-4 gap-3">
+                  {(bingoBoard ?? []).flat().map((cell, index) => {
+                    const isWrong = wrongBingoIndex === index;
+                    const isDone = bingoProgress >= bingoAnswer.length;
+                    return (
+                      <button
+                        key={`bingo-${index}`}
+                        type="button"
+                        onClick={() => {
+                          if (isDone || !bingoAnswer.length) return;
+                          const expected = bingoAnswer[bingoProgress];
+                          if (cell === expected) {
+                            setBingoProgress((prev) => prev + 1);
+                            setCorrectBingoIndex(index);
+                            if (correctTimeoutRef.current) {
+                              clearTimeout(correctTimeoutRef.current);
+                            }
+                            correctTimeoutRef.current = setTimeout(
+                              () => setCorrectBingoIndex(null),
+                              500
+                            );
+                            return;
+                          }
+                          setWrongBingoIndex(index);
+                          if (wrongTimeoutRef.current) {
+                            clearTimeout(wrongTimeoutRef.current);
+                          }
+                          wrongTimeoutRef.current = setTimeout(
+                            () => setWrongBingoIndex(null),
+                            500
+                          );
+                        }}
+                        className={`flex h-16 items-center justify-center rounded-2xl border text-center text-base text-white transition sm:h-20 sm:text-lg ${
+                          isWrong
+                            ? 'border-rose-500 bg-rose-500/60'
+                            : correctBingoIndex === index
+                            ? 'border-sky-400 bg-sky-500/60'
+                            : 'border-zinc-800 bg-zinc-950'
+                        }`}
+                      >
+                        {cell}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xl text-white">
+                  {bingoAnswer.map((word, index) => (
+                    <span
+                      key={`bingo-answer-${index}`}
+                      className={`min-w-[6rem] rounded-2xl border border-zinc-700 px-6 py-4 text-center ${
+                        index < bingoProgress
+                          ? 'bg-white text-black'
+                          : 'bg-zinc-950 text-white'
+                      }`}
+                    >
+                      {index < bingoProgress ? word : '•'}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
       <AlertDialog
         open={alertMessage !== null}
@@ -339,6 +576,24 @@ export default function StagePuzzle({
                   setIsDrawerOpen(false);
                   onReset();
                 }
+              }}
+            >
+              확인
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={bingoAlertOpen} onOpenChange={setBingoAlertOpen}>
+        <AlertDialogContent className="border-zinc-800 bg-zinc-950 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>문장대로 행동하세요.</AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="flex justify-end">
+            <AlertDialogAction
+              className="bg-white text-black hover:bg-white/90"
+              onClick={() => {
+                setBingoAlertOpen(false);
+                setBingoFinalUnlocked(true);
               }}
             >
               확인

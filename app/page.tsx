@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import StageIntro from '../components/StageIntro';
-import StagePuzzle from '../components/StagePuzzle';
-import { stages } from '../lib/stages';
+import { stages } from '../components/stages';
 
 export default function Home() {
   const [stageIndex, setStageIndex] = useState(0);
@@ -23,8 +22,12 @@ export default function Home() {
   );
 
   useEffect(() => {
+    if (stage.inputMode === 'bingo') {
+      setInput(['']);
+      return;
+    }
     setInput(Array.from({ length: stage.answer.length }, () => ''));
-  }, [stage.answer.length]);
+  }, [stage.answer.length, stage.inputMode]);
 
   const submitAnswer = (): 'correct' | 'wrong' | null => {
     const normalizedInput = input.join('').trim().toLowerCase();
@@ -72,9 +75,6 @@ export default function Home() {
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 overflow-y-auto px-6 py-8 sm:px-10 md:px-16 md:py-10 lg:max-w-7xl lg:px-20 md:[@media(orientation:landscape)]:py-6">
         <header className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-zinc-500">
           <span>Escape Room</span>
-          <span>
-            {stage.title} · {stageIndex + 1}/{stages.length}
-          </span>
         </header>
 
         {inIntro ? (
@@ -88,22 +88,18 @@ export default function Home() {
             onNext={goNextIntro}
           />
         ) : (
-          <StagePuzzle
-            title={stage.puzzleTitle}
-            question={stage.question}
-            puzzleImage={stage.puzzleImage}
-            inputMode={stage.inputMode}
-            answer={input}
-            status={status}
-            onAnswerChange={handleAnswerChange}
-            onSubmit={submitAnswer}
-            onReset={() => {
+          stage.renderPuzzle({
+            answer: input,
+            status,
+            onAnswerChange: handleAnswerChange,
+            onSubmit: submitAnswer,
+            onReset: () => {
               setInput(['', '']);
               setStatus('idle');
-            }}
-            onNextStage={goNextStage}
-            canAdvanceStage={canAdvanceStage}
-          />
+            },
+            onNextStage: goNextStage,
+            canAdvanceStage,
+          })
         )}
       </main>
     </div>

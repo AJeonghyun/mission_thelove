@@ -10,5 +10,9 @@ export type Stage = {
   difficulty?: 'easy' | 'normal' | 'hard';
   estimatedMinutes?: number;
   status?: 'locked' | 'available' | 'cleared';
-  inputMode?: 'drawer' | 'qr';
+  inputMode?: 'drawer' | 'qr' | 'coord' | 'bingo';
+  bingoBoard?: string[][];
+  bingoAnswer?: string[];
+  bingoFinalQuestion?: string;
+  bingoFinalAnswer?: string;
 };
