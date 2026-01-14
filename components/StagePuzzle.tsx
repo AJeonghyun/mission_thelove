@@ -105,7 +105,7 @@ export default function StagePuzzle({
         const value = result.data.toString();
         hasNavigated = true;
         scanner.stop();
-        window.open(value, '_blank', 'noopener,noreferrer');
+        window.location.assign(value);
       },
       {
         returnDetailedScanResult: true,
