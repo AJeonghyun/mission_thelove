@@ -28,9 +28,11 @@ export default function StageIntro({
           alt={`${title} intro ${introIndex + 1}`}
           fill
           sizes="(min-width: 1024px) 80vw, 100vw"
-          quality={100}
+          quality={75}
           className="object-contain"
-          priority
+          priority={introIndex === 0}
+          loading={introIndex === 0 ? 'eager' : 'lazy'}
+          fetchPriority={introIndex === 0 ? 'high' : 'auto'}
         />
       </div>
       <div className="flex items-center gap-3 text-sm text-zinc-400">
