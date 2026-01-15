@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import QrScanner from 'qr-scanner';
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -25,6 +26,7 @@ import { Input } from '@/components/ui/input';
 type StagePuzzleProps = {
   title: string;
   question: string;
+  questionExtra?: ReactNode;
   puzzleImage?: string;
   inputMode?: 'drawer' | 'qr' | 'coord' | 'bingo';
   bingoBoard?: string[][];
@@ -42,6 +44,7 @@ type StagePuzzleProps = {
 export default function StagePuzzle({
   title,
   question,
+  questionExtra,
   puzzleImage,
   inputMode = 'drawer',
   bingoBoard,
@@ -195,6 +198,7 @@ export default function StagePuzzle({
           <p className="whitespace-pre-line text-base text-zinc-200 sm:text-lg">
             {displayQuestion}
           </p>
+          {questionExtra && <div className="mt-5">{questionExtra}</div>}
           {inputMode === 'qr' && (
             <div className="mt-6 flex">
               <Button
@@ -253,16 +257,16 @@ export default function StagePuzzle({
                   ))}
                 </div>
               </div>
-              <DrawerFooter>
+              <DrawerFooter className="flex-row justify-center gap-3">
                 <Button
-                  className="bg-white text-black hover:bg-white/90"
+                  className="w-auto px-10 bg-white text-black hover:bg-white/90"
                   onClick={handleSubmit}
                 >
                   제출
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-black bg-black text-white hover:bg-white/10"
+                  className="w-auto px-10 border-black bg-black text-white hover:bg-white/10"
                   onClick={onReset}
                 >
                   초기화

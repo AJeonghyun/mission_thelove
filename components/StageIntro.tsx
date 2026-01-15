@@ -35,7 +35,7 @@ export default function StageIntro({
           fetchPriority={introIndex === 0 ? 'high' : 'auto'}
         />
       </div>
-      <div className="flex items-center gap-3 text-sm text-zinc-400">
+      <div className="mb-30 flex items-center gap-5 text-sm text-zinc-400">
         <Button
           type="button"
           variant="outline"
