@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -51,14 +51,11 @@ function Stage7Screen({
   const [finalInput, setFinalInput] = useState('');
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [shouldAdvance, setShouldAdvance] = useState(false);
-  const [dragging, setDragging] = useState<{
+  const [selectedCard, setSelectedCard] = useState<{
     id: (typeof cards)[number]['id'];
     from: 'pool' | 'slot';
     index: number;
   } | null>(null);
-  const [pointerPos, setPointerPos] = useState<{ x: number; y: number } | null>(
-    null
-  );
 
   const cardMap = useMemo(() => {
     return new Map(cards.map((card) => [card.id, card]));
@@ -88,32 +85,6 @@ function Stage7Screen({
     );
   };
 
-  const handleDropToSlot = (
-    toIndex: number,
-    payload: { from: 'pool' | 'slot'; index: number; id: string }
-  ) => {
-    if (slots[toIndex] !== null) return;
-    if (payload.from === 'pool') {
-      moveToSlot(toIndex, payload.id as (typeof cards)[number]['id']);
-      return;
-    }
-    if (payload.from === 'slot') {
-      if (payload.index === toIndex) return;
-      setSlots((prev) => {
-        const next = [...prev];
-        next[toIndex] = next[payload.index];
-        next[payload.index] = null;
-        return next;
-      });
-    }
-  };
-
-  const handleDropToPool = (payload: { from: 'pool' | 'slot'; id: string }) => {
-    if (payload.from === 'slot') {
-      moveToPool(payload.id as (typeof cards)[number]['id']);
-    }
-  };
-
   const handleCheck = () => {
     const isCorrect =
       slots.every((id) => id !== null) &&
@@ -125,44 +96,39 @@ function Stage7Screen({
       return;
     }
     setSlots([null, null, null, null]);
-    setPool(['bread', 'cross', 'fish', 'people']);
+    setPool(['people', 'fish', 'cross', 'bread']);
     setShouldAdvance(false);
+    setSelectedCard(null);
     setAlertMessage('오답입니다. 카드가 초기화되었습니다.');
   };
 
-  useEffect(() => {
-    if (!dragging) return;
+  const handleSlotClick = (index: number) => {
+    if (!selectedCard) return;
+    if (slots[index] !== null) return;
+    if (selectedCard.from === 'pool') {
+      moveToSlot(index, selectedCard.id);
+      setSelectedCard(null);
+      return;
+    }
+    if (selectedCard.from === 'slot') {
+      if (selectedCard.index === index) return;
+      setSlots((prev) => {
+        const next = [...prev];
+        next[index] = next[selectedCard.index];
+        next[selectedCard.index] = null;
+        return next;
+      });
+      setSelectedCard(null);
+    }
+  };
 
-    const handlePointerMove = (event: PointerEvent) => {
-      setPointerPos({ x: event.clientX, y: event.clientY });
-    };
-
-    const handlePointerUp = (event: PointerEvent) => {
-      const target = document.elementFromPoint(event.clientX, event.clientY);
-      const dropZone = target?.closest<HTMLElement>('[data-drop]');
-      if (dropZone) {
-        const dropType = dropZone.dataset.drop;
-        if (dropType === 'pool') {
-          handleDropToPool({ from: dragging.from, id: dragging.id });
-        }
-        if (dropType === 'slot') {
-          const index = Number(dropZone.dataset.index);
-          if (!Number.isNaN(index)) {
-            handleDropToSlot(index, dragging);
-          }
-        }
-      }
-      setDragging(null);
-      setPointerPos(null);
-    };
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp, { once: true });
-
-    return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-    };
-  }, [dragging]);
+  const handlePoolClick = () => {
+    if (!selectedCard) return;
+    if (selectedCard.from === 'slot') {
+      moveToPool(selectedCard.id);
+    }
+    setSelectedCard(null);
+  };
 
   return (
     <section className="flex flex-1 flex-col gap-6 min-h-0">
@@ -182,38 +148,30 @@ function Stage7Screen({
           <>
             <div
               className="w-full max-w-4xl rounded-2xl border border-zinc-800 bg-zinc-950/70 p-4"
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={(event) => {
-                const data = event.dataTransfer.getData('application/json');
-                if (!data) return;
-                const payload = JSON.parse(data) as {
-                  from: 'pool' | 'slot';
-                  id: string;
-                };
-                handleDropToPool(payload);
-              }}
-              data-drop="pool"
+              onClick={handlePoolClick}
             >
               <div className="text-xs text-zinc-400">카드 목록</div>
               <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {pool.map((id, index) => {
                   const card = cardMap.get(id);
+                  const isSelected =
+                    selectedCard?.id === id && selectedCard.from === 'pool';
                   return (
                     <div
                       key={`pool-${id}`}
-                      draggable
-                      onPointerDown={(event) => {
-                        event.preventDefault();
-                        setDragging({ from: 'pool', index, id });
-                        setPointerPos({ x: event.clientX, y: event.clientY });
-                      }}
-                      onDragStart={(event) => {
-                        event.dataTransfer.setData(
-                          'application/json',
-                          JSON.stringify({ from: 'pool', index, id })
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setSelectedCard((prev) =>
+                          prev?.id === id && prev.from === 'pool'
+                            ? null
+                            : { from: 'pool', index, id }
                         );
                       }}
-                      className="flex h-28 flex-col items-center justify-center gap-3 rounded-xl border border-zinc-700 bg-zinc-900/70 px-4 text-center text-white"
+                      className={`flex h-28 flex-col items-center justify-center gap-3 rounded-xl border px-4 text-center text-white ${
+                        isSelected
+                          ? 'border-sky-400 bg-zinc-900/70'
+                          : 'border-zinc-700 bg-zinc-900/70'
+                      }`}
                     >
                       <span className="text-3xl">{card?.emoji}</span>
                       <span className="text-sm text-zinc-200">
@@ -229,51 +187,31 @@ function Stage7Screen({
               <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {slots.map((id, index) => {
                   const card = id ? cardMap.get(id) : null;
+                  const isSelected =
+                    !!card &&
+                    selectedCard?.id === card.id &&
+                    selectedCard.from === 'slot';
                   return (
                     <div
                       key={`slot-${index}`}
                       className="flex h-28 items-center justify-center rounded-2xl border border-dashed border-zinc-700 bg-zinc-950/60"
-                      onDragOver={(event) => event.preventDefault()}
-                      onDrop={(event) => {
-                        const data =
-                          event.dataTransfer.getData('application/json');
-                        if (!data) return;
-                        const payload = JSON.parse(data) as {
-                          from: 'pool' | 'slot';
-                          index: number;
-                          id: string;
-                        };
-                        handleDropToSlot(index, payload);
-                      }}
-                      data-drop="slot"
-                      data-index={index}
+                      onClick={() => handleSlotClick(index)}
                     >
                       {card ? (
                         <div
-                          draggable
-                          onPointerDown={(event) => {
-                            event.preventDefault();
-                            setDragging({
-                              from: 'slot',
-                              index,
-                              id: card.id,
-                            });
-                            setPointerPos({
-                              x: event.clientX,
-                              y: event.clientY,
-                            });
-                          }}
-                          onDragStart={(event) => {
-                            event.dataTransfer.setData(
-                              'application/json',
-                              JSON.stringify({
-                                from: 'slot',
-                                index,
-                                id: card.id,
-                              })
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedCard((prev) =>
+                              prev?.id === card.id && prev.from === 'slot'
+                                ? null
+                                : { from: 'slot', index, id: card.id }
                             );
                           }}
-                          className="flex h-28 w-full flex-col items-center justify-center gap-3 rounded-xl border border-zinc-700 bg-zinc-900/70 px-4 text-center text-white"
+                          className={`flex h-28 w-full flex-col items-center justify-center gap-3 rounded-xl border px-4 text-center text-white ${
+                            isSelected
+                              ? 'border-sky-400 bg-zinc-900/70'
+                              : 'border-zinc-700 bg-zinc-900/70'
+                          }`}
                         >
                           <span className="text-3xl">{card.emoji}</span>
                           <span className="text-sm text-zinc-200">
@@ -281,7 +219,7 @@ function Stage7Screen({
                           </span>
                         </div>
                       ) : (
-                        <span className="text-xs text-zinc-500">드래그</span>
+                        <span className="text-xs text-zinc-500">선택</span>
                       )}
                     </div>
                   );
@@ -373,18 +311,6 @@ function Stage7Screen({
           </div>
         </AlertDialogContent>
       </AlertDialog>
-      {dragging && pointerPos && (
-        <div
-          className="pointer-events-none fixed left-0 top-0 z-50 -translate-x-1/2 -translate-y-1/2"
-          style={{
-            transform: `translate(${pointerPos.x}px, ${pointerPos.y}px)`,
-          }}
-        >
-          <div className="flex h-24 w-24 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900/90 text-white">
-            <span className="text-2xl">{cardMap.get(dragging.id)?.emoji}</span>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
