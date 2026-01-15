@@ -76,8 +76,6 @@ export default function StagePuzzle({
   const [bingoFinalUnlocked, setBingoFinalUnlocked] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const scannerRef = useRef<QrScanner | null>(null);
-  const showScannerRef = useRef(showScanner);
-  const hasNavigatedRef = useRef(false);
   const onAnswerChangeRef = useRef(onAnswerChange);
   const wrongTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const correctTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -88,13 +86,6 @@ export default function StagePuzzle({
   useEffect(() => {
     onAnswerChangeRef.current = onAnswerChange;
   }, [onAnswerChange]);
-
-  useEffect(() => {
-    showScannerRef.current = showScanner;
-    if (showScanner) {
-      hasNavigatedRef.current = false;
-    }
-  }, [showScanner]);
 
   useEffect(() => {
     if (inputMode !== 'bingo') return;
@@ -147,6 +138,15 @@ export default function StagePuzzle({
   useEffect(() => {
     if (inputMode !== 'qr') return;
 
+    if (!showScanner) {
+      if (scannerRef.current) {
+        scannerRef.current.stop();
+        scannerRef.current.destroy();
+        scannerRef.current = null;
+      }
+      return;
+    }
+
     if (!videoRef.current || scannerRef.current) return;
 
     QrScanner.WORKER_PATH = new URL(
@@ -154,13 +154,14 @@ export default function StagePuzzle({
       import.meta.url
     ).toString();
 
+    setScanError(null);
+    let hasNavigated = false;
     const scanner = new QrScanner(
       videoRef.current,
       (result) => {
-        if (!showScannerRef.current || !result?.data) return;
-        if (hasNavigatedRef.current) return;
+        if (!result?.data || hasNavigated) return;
         const value = result.data.toString();
-        hasNavigatedRef.current = true;
+        hasNavigated = true;
         scanner.stop();
         window.location.assign(value);
       },
@@ -170,21 +171,9 @@ export default function StagePuzzle({
       }
     );
     scannerRef.current = scanner;
-    return () => {
-      scanner.stop();
-      scanner.destroy();
-      scannerRef.current = null;
-    };
-  }, [inputMode]);
 
-  useEffect(() => {
-    if (inputMode !== 'qr' || !showScanner) return;
-    if (!scannerRef.current) return;
-    setScanError(null);
-    scannerRef.current
-      .start()
-      .catch(() => setScanError('카메라 권한을 확인해 주세요.'));
-  }, [inputMode, showScanner]);
+    scanner.start().catch(() => setScanError('카메라 권한을 확인해 주세요.'));
+  }, [answer.length, inputMode, showScanner]);
 
   useEffect(() => {
     if (!showScanner) {
@@ -211,7 +200,7 @@ export default function StagePuzzle({
                 type="button"
                 onClick={() => setShowScanner((prev) => !prev)}
               >
-                {showScanner ? '카메라 숨기기' : '카메라 열기'}
+                {showScanner ? '카메라 닫기' : '카메라 열기'}
               </Button>
             </div>
           )}

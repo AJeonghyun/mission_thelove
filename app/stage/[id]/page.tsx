@@ -19,9 +19,24 @@ export default function StagePage() {
   const [status, setStatus] = useState<'idle' | 'wrong' | 'cleared'>('idle');
 
   useEffect(() => {
-    setIntroIndex(0);
     setStatus('idle');
-  }, [stageIndex]);
+    if (Number.isNaN(stageNumber)) return;
+    const storedIntro = sessionStorage.getItem(`stage-intro-${stageNumber}`);
+    if (storedIntro !== null) {
+      const parsed = Number(storedIntro);
+      if (!Number.isNaN(parsed)) {
+        const maxIndex = stage?.introImages.length ?? parsed;
+        setIntroIndex(Math.min(Math.max(parsed, 0), maxIndex));
+        return;
+      }
+    }
+    setIntroIndex(0);
+  }, [stage?.introImages.length, stageIndex, stageNumber]);
+
+  useEffect(() => {
+    if (Number.isNaN(stageNumber)) return;
+    sessionStorage.setItem(`stage-intro-${stageNumber}`, String(introIndex));
+  }, [introIndex, stageNumber]);
 
   const normalizedAnswer = useMemo(
     () => (stage?.answer ?? '').trim().toLowerCase(),
