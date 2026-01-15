@@ -559,18 +559,42 @@ export default function StagePuzzle({
                   })}
                 </div>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xl text-white">
-                  {bingoAnswer.map((word, index) => (
-                    <span
-                      key={`bingo-answer-${index}`}
-                      className={`min-w-[6rem] rounded-2xl border border-zinc-700 px-5 py-3 text-center ${
-                        index < bingoProgress
-                          ? 'bg-white text-black'
-                          : 'bg-zinc-950 text-white'
-                      }`}
-                    >
-                      {index < bingoProgress ? word : '•'}
-                    </span>
-                  ))}
+                  {bingoAnswer.map((word, index) => {
+                    const isFilled = index < bingoProgress;
+                    const displayWord =
+                      index === 1 && bingoAltChoice
+                        ? bingoAltChoice
+                        : index === 4 && bingoAltChoice
+                        ? bingoAltChoice === '안 쓴'
+                          ? '쓴'
+                          : '안 쓴'
+                        : word;
+                    return (
+                      <button
+                        key={`bingo-answer-${index}`}
+                        type="button"
+                        onClick={() => {
+                          if (!isFilled) return;
+                          setBingoProgress(index);
+                          setWrongBingoIndex(null);
+                          setCorrectBingoIndex(null);
+                          if (index <= 1) {
+                            setBingoAltChoice(null);
+                          }
+                          setBingoAlertOpen(false);
+                        }}
+                        disabled={!isFilled}
+                        className={`min-w-[6rem] rounded-2xl border border-zinc-700 px-5 py-3 text-center ${
+                          isFilled
+                            ? 'bg-white text-black'
+                            : 'bg-zinc-950 text-white'
+                        }`}
+                        aria-disabled={!isFilled}
+                      >
+                        {isFilled ? displayWord : '•'}
+                      </button>
+                    );
+                  })}
                 </div>
               </>
             )}
