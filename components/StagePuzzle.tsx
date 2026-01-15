@@ -69,6 +69,9 @@ export default function StagePuzzle({
   const [correctBingoIndex, setCorrectBingoIndex] = useState<number | null>(
     null
   );
+  const [bingoAltChoice, setBingoAltChoice] = useState<'쓴' | '안 쓴' | null>(
+    null
+  );
   const [bingoAlertOpen, setBingoAlertOpen] = useState(false);
   const [bingoFinalUnlocked, setBingoFinalUnlocked] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -100,6 +103,7 @@ export default function StagePuzzle({
     setCorrectBingoIndex(null);
     setBingoAlertOpen(false);
     setBingoFinalUnlocked(false);
+    setBingoAltChoice(null);
   }, [inputMode, bingoAnswer.join('|')]);
 
   useEffect(() => {
@@ -514,10 +518,26 @@ export default function StagePuzzle({
                         type="button"
                         onClick={() => {
                           if (isDone || !bingoAnswer.length) return;
-                          const expected = bingoAnswer[bingoProgress];
-                          if (cell === expected) {
+                          const expected =
+                            bingoProgress === 1
+                              ? ['안 쓴', '쓴']
+                              : bingoProgress === 4
+                              ? [
+                                  bingoAltChoice === '안 쓴'
+                                    ? '쓴'
+                                    : bingoAltChoice === '쓴'
+                                    ? '안 쓴'
+                                    : '쓴',
+                                ]
+                              : [bingoAnswer[bingoProgress]];
+                          if (expected.includes(cell)) {
                             setBingoProgress((prev) => prev + 1);
                             setCorrectBingoIndex(index);
+                            if (bingoProgress === 1) {
+                              if (cell === '쓴' || cell === '안 쓴') {
+                                setBingoAltChoice(cell);
+                              }
+                            }
                             if (correctTimeoutRef.current) {
                               clearTimeout(correctTimeoutRef.current);
                             }
@@ -536,7 +556,7 @@ export default function StagePuzzle({
                             500
                           );
                         }}
-                        className={`flex h-16 items-center justify-center rounded-2xl border text-center text-base text-white transition sm:h-20 sm:text-lg ${
+                        className={`flex h-14 items-center justify-center rounded-xl border text-center text-sm text-white transition sm:h-18 sm:text-base ${
                           isWrong
                             ? 'border-rose-500 bg-rose-500/60'
                             : correctBingoIndex === index
@@ -553,7 +573,7 @@ export default function StagePuzzle({
                   {bingoAnswer.map((word, index) => (
                     <span
                       key={`bingo-answer-${index}`}
-                      className={`min-w-[6rem] rounded-2xl border border-zinc-700 px-6 py-4 text-center ${
+                      className={`min-w-[6rem] rounded-2xl border border-zinc-700 px-5 py-3 text-center ${
                         index < bingoProgress
                           ? 'bg-white text-black'
                           : 'bg-zinc-950 text-white'
