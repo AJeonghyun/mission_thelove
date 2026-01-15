@@ -76,7 +76,6 @@ export default function StagePuzzle({
   const [bingoFinalUnlocked, setBingoFinalUnlocked] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const scannerRef = useRef<QrScanner | null>(null);
-  const showScannerRef = useRef(showScanner);
   const onAnswerChangeRef = useRef(onAnswerChange);
   const wrongTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const correctTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -87,10 +86,6 @@ export default function StagePuzzle({
   useEffect(() => {
     onAnswerChangeRef.current = onAnswerChange;
   }, [onAnswerChange]);
-
-  useEffect(() => {
-    showScannerRef.current = showScanner;
-  }, [showScanner]);
 
   useEffect(() => {
     if (inputMode !== 'bingo') return;
@@ -179,34 +174,6 @@ export default function StagePuzzle({
 
     scanner.start().catch(() => setScanError('카메라 권한을 확인해 주세요.'));
   }, [answer.length, inputMode, showScanner]);
-
-  useEffect(() => {
-    if (inputMode !== 'qr') return;
-    const resumeScanner = () => {
-      if (!showScannerRef.current || !scannerRef.current) return;
-      setScanError(null);
-      scannerRef.current
-        .start()
-        .catch(() => setScanError('카메라 권한을 확인해 주세요.'));
-    };
-    const handlePageShow = () => {
-      resumeScanner();
-    };
-    const handleVisibilityChange = () => {
-      if (!scannerRef.current) return;
-      if (document.visibilityState === 'visible') {
-        resumeScanner();
-      } else {
-        scannerRef.current.stop();
-      }
-    };
-    window.addEventListener('pageshow', handlePageShow);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      window.removeEventListener('pageshow', handlePageShow);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [inputMode]);
 
   useEffect(() => {
     if (!showScanner) {
