@@ -132,19 +132,19 @@ function Stage7Screen({
 
   return (
     <section className="flex flex-1 flex-col gap-6 min-h-0">
-      <Card className="rounded-3xl border-zinc-800 bg-zinc-900/70 text-white">
-        <CardHeader className="px-8">
-          <CardTitle className="text-2xl sm:text-3xl">{puzzleTitle}</CardTitle>
+      <Card className="w-full max-w-4xl mx-auto rounded-3xl border-zinc-800 bg-zinc-900/70 text-white">
+        <CardHeader className="px-6">
+          <CardTitle className="text-xl sm:text-2xl">{puzzleTitle}</CardTitle>
         </CardHeader>
-        <CardContent className="px-8">
-          <p className="title text-center text-2xl text-yellow-300">
+        <CardContent className="px-6">
+          <p className="title text-center text-base text-yellow-300">
             &lt;메인 제시문&gt;
           </p>
-          <p className="whitespace-pre-line text-base text-center text-yellow-300 sm:text-2xl">
+          <p className="whitespace-pre-line text-sm text-center text-yellow-300 sm:text-xs">
             {question}
           </p>
           <div className="mt-4 flex justify-center">
-            <div className="max-w-2xl text-left text-2xl text-zinc-200 sm:text-xl">
+            <div className="max-w-xl text-left text-base text-zinc-200 sm:text-sm">
               {conditions.map((line) => (
                 <p key={line} className="whitespace-pre-line">
                   {line}

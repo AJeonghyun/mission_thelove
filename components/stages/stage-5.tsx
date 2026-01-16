@@ -98,7 +98,7 @@ function Stage5Screen({
 
       {pageIndex === 0 ? (
         <div className="flex w-full flex-col items-center gap-6">
-          <div className="w-full max-w-6xl rounded-3xl border border-zinc-800 bg-zinc-950/70 p-4 max-h-[50vh] overflow-hidden">
+          <div className="w-full max-w-6xl rounded-3xl border border-zinc-800 bg-zinc-950/70 p-2 max-h-[50vh] overflow-hidden">
             <div className="flex flex-col items-center gap-5 lg:flex-row lg:items-stretch">
               <div className="flex w-full flex-1 flex-col rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
                 <div className="text-sl uppercase tracking-[0.3em] text-zinc-400">
@@ -156,7 +156,7 @@ function Stage5Screen({
                   미로 방
                 </div>
                 <div className="mt-4 flex flex-1 flex-col items-center gap-3">
-                  <div className="relative flex w-full max-w-xs items-center justify-center pt-4 pb-4">
+                  <div className="relative flex w-full max-w-xs items-center justify-center ">
                     <div className="absolute left-0 -top-2 rounded-full border border-emerald-300/60 bg-emerald-300/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-200">
                       START
                     </div>
