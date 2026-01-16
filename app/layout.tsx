@@ -3,13 +3,13 @@ import localFont from 'next/font/local';
 import './globals.css';
 
 const dunggeunmo = localFont({
-  src: '/Users/anjeonghyeon/Desktop/thelove/public/fonts/DungGeunMo.ttf',
+  src: '../public/fonts/DungGeunMo.ttf',
   variable: '--font-geist-sans',
   display: 'swap',
 });
 
 const dunggeunmoMono = localFont({
-  src: '/Users/anjeonghyeon/Desktop/thelove/public/fonts/DungGeunMo.ttf',
+  src: '../public/fonts/DungGeunMo.ttf',
   variable: '--font-geist-mono',
   display: 'swap',
 });
