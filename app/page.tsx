@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import StageIntro from '../components/StageIntro';
 import { stages } from '../components/stages';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const [stageIndex, setStageIndex] = useState(0);
@@ -15,6 +16,7 @@ export default function Home() {
   const isFirstIntro = introIndex === 0;
   const isLastIntro = introIndex === stage.introImages.length - 1;
   const canAdvanceStage = stageIndex < stages.length - 1;
+  const canGoPrevStage = stageIndex > 0;
 
   const normalizedAnswer = useMemo(
     () => stage.answer.trim().toLowerCase(),
@@ -26,10 +28,30 @@ export default function Home() {
       setInput(['']);
       return;
     }
+    if (stage.inputMode === 'qr' && stage.qrAnswers?.length) {
+      setInput(Array.from({ length: stage.qrAnswers.length }, () => ''));
+      return;
+    }
     setInput(Array.from({ length: stage.answer.length }, () => ''));
-  }, [stage.answer.length, stage.inputMode]);
+  }, [stage.answer.length, stage.inputMode, stage.qrAnswers?.length]);
 
   const submitAnswer = (): 'correct' | 'wrong' | null => {
+    if (stage.inputMode === 'qr' && stage.qrAnswers?.length) {
+      const normalizedInputs = input.map((value) => value.trim().toLowerCase());
+      if (normalizedInputs.some((value) => !value)) return null;
+      const normalizedQr = stage.qrAnswers.map((value) =>
+        value.trim().toLowerCase()
+      );
+      const isCorrect =
+        normalizedInputs.length === normalizedQr.length &&
+        normalizedInputs.every((value, index) => value === normalizedQr[index]);
+      if (isCorrect) {
+        setStatus('cleared');
+        return 'correct';
+      }
+      setStatus('wrong');
+      return 'wrong';
+    }
     const normalizedInput = input.join('').trim().toLowerCase();
     if (!normalizedInput) return null;
     if (normalizedInput === normalizedAnswer) {
@@ -43,6 +65,13 @@ export default function Home() {
   const goNextStage = () => {
     if (!canAdvanceStage) return;
     setStageIndex((prev) => prev + 1);
+    setIntroIndex(0);
+    setInput(['', '']);
+    setStatus('idle');
+  };
+  const goPrevStage = () => {
+    if (!canGoPrevStage) return;
+    setStageIndex((prev) => Math.max(prev - 1, 0));
     setIntroIndex(0);
     setInput(['', '']);
     setStatus('idle');
@@ -81,6 +110,9 @@ export default function Home() {
           <StageIntro
             title={stage.title}
             images={stage.introImages}
+            narrations={stage.introNarrations}
+            overlayImage={stage.introOverlayImage}
+            overlayText={stage.introOverlayText}
             introIndex={introIndex}
             isFirst={isFirstIntro}
             isLast={isLastIntro}
@@ -88,18 +120,38 @@ export default function Home() {
             onNext={goNextIntro}
           />
         ) : (
-          stage.renderPuzzle({
-            answer: input,
-            status,
-            onAnswerChange: handleAnswerChange,
-            onSubmit: submitAnswer,
-            onReset: () => {
-              setInput(['', '']);
-              setStatus('idle');
-            },
-            onNextStage: goNextStage,
-            canAdvanceStage,
-          })
+          <>
+            {stage.renderPuzzle({
+              answer: input,
+              status,
+              onAnswerChange: handleAnswerChange,
+              onSubmit: submitAnswer,
+              onReset: () => {
+                setInput(['', '']);
+                setStatus('idle');
+              },
+              onNextStage: goNextStage,
+              canAdvanceStage,
+            })}
+            <div className="flex items-center justify-center gap-3 ">
+              <Button
+                variant="outline"
+                className="rounded-full border-black/20 text-black "
+                onClick={goPrevStage}
+                disabled={!canGoPrevStage}
+              >
+                이전 문제
+              </Button>
+              <Button
+                variant="outline"
+                className="rounded-full bg-black text-white border-white/20"
+                onClick={goNextStage}
+                disabled={!canAdvanceStage}
+              >
+                다음 문제
+              </Button>
+            </div>
+          </>
         )}
       </main>
     </div>

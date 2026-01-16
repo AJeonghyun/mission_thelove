@@ -3,7 +3,15 @@ import type { StageEntry } from './types';
 
 const puzzleTitle = '사탄의 복도';
 const question =
-  '사탄은 진실을 숨기기 위해 수많은 거울과 문을 만들어 두었다.\n\n겉보기에는 모두 같지만 그중 단 하나만이 다음 방으로 이어지는 길이다.';
+  '사탄은 우리를 시험에 들게 하기 위해 수많은 QR을 준비해 두었다.\n\n진짜 QR을 찾아서 문제를 해결해라.';
+const qrAnswers = [
+  '3,9,8',
+  '1,12,27',
+  '5,10,16',
+  '7,33,7',
+  '8,14,15',
+  '3,19,5',
+];
 
 const stage2: StageEntry = {
   id: 'stage-2',
@@ -12,7 +20,8 @@ const stage2: StageEntry = {
   puzzleTitle,
   question,
   inputMode: 'qr',
-  answer: '6634',
+  answer: 'qr',
+  qrAnswers,
   renderPuzzle: ({
     answer,
     status,
@@ -26,6 +35,7 @@ const stage2: StageEntry = {
       title={puzzleTitle}
       question={question}
       inputMode="qr"
+      qrAnswers={qrAnswers}
       answer={answer}
       status={status}
       onAnswerChange={onAnswerChange}

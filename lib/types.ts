@@ -2,6 +2,10 @@ export type Stage = {
   id: string;
   title: string;
   introImages: string[];
+  introNarrations?: string[];
+  introOverlayImage?: string;
+  introOverlayText?: string;
+  qrAnswers?: string[];
   puzzleImage?: string;
   puzzleTitle: string;
   question: string;

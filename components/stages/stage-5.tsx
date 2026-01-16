@@ -1,26 +1,27 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useEffect, useRef } from 'react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import type { StageEntry } from './types';
 
 const puzzleTitle = '사탄의 미로';
 const question =
-  '미로의 길목마다\n작은 복주머니가 있다.\n그 안에는 사탄이 훔친 달란트와\n다음 사람에게 전해져야 할 메시지가 담겨 있다.';
+  '미로의 길목마다\n작은 복주머니가 있다.\n그 안에는 사탄이 훔친 무언가와\n다음 사람에게 전해져야 할 메시지가 담겨 있다.';
 const mazeLayout = [
   1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1,
   0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
 ];
 const roomBIcons: Record<number, string> = {
   43: 'B',
-  13: 'T',
-  33: 'N',
+  13: 'B',
+  33: 'B',
+  23: 'B',
 };
 
 function Stage5Screen({
@@ -30,41 +31,82 @@ function Stage5Screen({
   onNextStage: () => void;
   canAdvanceStage: boolean;
 }) {
-  const [phase, setPhase] = useState<'intro' | 'reveal'>('intro');
+  const [pageIndex, setPageIndex] = useState(0);
   const [alertOpen, setAlertOpen] = useState(false);
+  const [showMapHint, setShowMapHint] = useState(false);
+  const [destinationInput, setDestinationInput] = useState('');
+  const [actionAlertOpen, setActionAlertOpen] = useState(false);
+  const alertDialogRef = useRef<HTMLDialogElement | null>(null);
+  const actionDialogRef = useRef<HTMLDialogElement | null>(null);
+
+  useEffect(() => {
+    const dialog = alertDialogRef.current;
+    if (!dialog) return;
+    if (alertOpen && !dialog.open) {
+      dialog.showModal();
+      return;
+    }
+    if (!alertOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [alertOpen]);
+
+  useEffect(() => {
+    const dialog = actionDialogRef.current;
+    if (!dialog) return;
+    if (actionAlertOpen && !dialog.open) {
+      dialog.showModal();
+      return;
+    }
+    if (!actionAlertOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [actionAlertOpen]);
 
   return (
     <section className="flex flex-1 flex-col gap-6 min-h-0">
       <Card className="rounded-3xl border-zinc-800 bg-zinc-900/70 text-white">
         <CardHeader className="px-8">
-          <CardTitle className="text-2xl sm:text-3xl">{puzzleTitle}</CardTitle>
-        </CardHeader>
-        <CardContent className="px-8">
           <div className="flex flex-col gap-5 md:flex-row md:items-start md:gap-8">
-            <p className="whitespace-pre-line text-base text-zinc-200 sm:text-lg md:flex-1">
-              {question}
-            </p>
-            <div className="md:w-[320px] rounded-2xl border border-zinc-800 bg-zinc-950/70 p-4 text-sm text-zinc-200">
-              <div>📢 규칙 📢</div>
-              <div>1. 역할 : 지도자 / 탐험자</div>
-              <div className="mt-2">2. 서로 볼 수 없음, 무전기로만 소통</div>
-              <div className="mt-2">3. 탐험자는 길을 이동해 EXIT에 도달</div>
+            <div className="flex flex-1 flex-col gap-3">
+              <CardTitle className="text-2xl sm:text-3xl">
+                {puzzleTitle}
+              </CardTitle>
+              <p className="whitespace-pre-line text-base text-zinc-200 sm:text-lg">
+                {question}
+              </p>
+            </div>
+            <div className="md:w-[460px] rounded-2xl border border-zinc-800 bg-zinc-950/70 p-5 text-sm text-zinc-200 md:self-start">
+              <div className="mb-3">📢 규칙 📢</div>
+              <div className="lists">
+                <ul className="nes-list is-disc">
+                  <li>역할: 안내자 / 탐험자</li>
+                  <li className="text-emerald-300">
+                    탐험자 2명: ‘ㅇ’ 포함 1명 + 최연소 1명
+                  </li>
+                  <li className="text-emerald-300">B1 아너스홀 이동</li>
+                  <li>서로 못 봄, 전화만 가능</li>
+                  <li>탐험자=선생님폰 / 안내자=조 스태프폰</li>
+                  <li>복주머니 찾고 EXIT 도착</li>
+                </ul>
+              </div>
             </div>
           </div>
-        </CardContent>
+        </CardHeader>
+        <CardContent className="px-8" />
       </Card>
 
-      {phase === 'intro' ? (
+      {pageIndex === 0 ? (
         <div className="flex w-full flex-col items-center gap-6">
-          <div className="w-full max-w-6xl rounded-3xl border border-zinc-800 bg-zinc-950/70 p-6">
-            <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-stretch">
-              <div className="flex w-full flex-1 flex-col rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-                <div className="text-sm uppercase tracking-[0.3em] text-zinc-400">
-                  ROOM A (지도 방)
+          <div className="w-full max-w-6xl rounded-3xl border border-zinc-800 bg-zinc-950/70 p-4 max-h-[50vh] overflow-hidden">
+            <div className="flex flex-col items-center gap-5 lg:flex-row lg:items-stretch">
+              <div className="flex w-full flex-1 flex-col rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
+                <div className="text-sl uppercase tracking-[0.3em] text-zinc-400">
+                  지도 방
                 </div>
-                <div className="mt-5 flex flex-1 items-center justify-center">
-                  <div className="relative flex w-full max-w-sm items-center justify-center pt-6 pb-6">
-                    <div className="w-full rounded-2xl border border-zinc-700 bg-zinc-950 p-5 text-center text-zinc-100">
+                <div className="mt-4 flex flex-1 items-center justify-center">
+                  <div className="relative flex w-full max-w-xs items-center justify-center pt-4 pb-4">
+                    <div className="w-full rounded-2xl border border-zinc-700 bg-zinc-950 p-4 text-center text-zinc-100">
                       <div className="flex items-center justify-center gap-6">
                         <div className="flex flex-col items-center gap-2">
                           <img
@@ -72,7 +114,7 @@ function Stage5Screen({
                             alt="지도 보는 사람들"
                             width={80}
                             height={80}
-                            className="h-20 w-20 object-contain brightness-0 invert"
+                            className="h-16 w-16 object-contain brightness-0 invert"
                           />
                           <span className="text-xs text-zinc-400">안내자</span>
                         </div>
@@ -82,7 +124,7 @@ function Stage5Screen({
                             alt="미로 지도"
                             width={80}
                             height={80}
-                            className="h-20 w-20 object-contain brightness-0 invert"
+                            className="h-16 w-16 object-contain brightness-0 invert"
                           />
                           <span className="text-xs text-zinc-400">
                             미로 지도
@@ -103,22 +145,22 @@ function Stage5Screen({
                     <span className="h-px w-12 border-t border-dashed border-zinc-600" />
                   </div>
                   <span className="text-xs uppercase tracking-[0.2em]">
-                    무전기 통신
+                    핸드폰 통신
                   </span>
                   <span className="h-10 border-l border-dashed border-zinc-600 lg:hidden" />
                 </div>
               </div>
 
-              <div className="relative flex w-full flex-1 flex-col rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-                <div className="text-sm uppercase tracking-[0.3em] text-zinc-400">
-                  ROOM B (미로 방)
+              <div className="relative flex w-full flex-1 flex-col rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
+                <div className="text-sl uppercase tracking-[0.3em] text-zinc-400">
+                  미로 방
                 </div>
-                <div className="mt-5 flex flex-1 flex-col items-center gap-3">
-                  <div className="relative flex w-full max-w-sm items-center justify-center pt-6 pb-6">
-                    <div className="absolute left-0 top-0 rounded-full border border-emerald-300/60 bg-emerald-300/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-200">
+                <div className="mt-4 flex flex-1 flex-col items-center gap-3">
+                  <div className="relative flex w-full max-w-xs items-center justify-center pt-4 pb-4">
+                    <div className="absolute left-0 -top-2 rounded-full border border-emerald-300/60 bg-emerald-300/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-200">
                       START
                     </div>
-                    <div className="absolute bottom-0 right-0 rounded-full border border-emerald-300/60 bg-emerald-300/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-200">
+                    <div className="absolute -bottom-2 right-0 rounded-full border border-emerald-300/60 bg-emerald-300/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-200">
                       EXIT
                     </div>
                     <div className="w-full rounded-2xl border border-zinc-700 bg-zinc-950 p-5">
@@ -132,7 +174,7 @@ function Stage5Screen({
                             aria-hidden
                           >
                             {roomBIcons[index] && (
-                              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-amber-300/60 bg-amber-300/20 text-[10px] text-amber-200">
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-amber-300/60 bg-amber-300/20 text-[15px] text-amber-200">
                                 {roomBIcons[index]}
                               </span>
                             )}
@@ -141,31 +183,19 @@ function Stage5Screen({
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-zinc-400">
+                  <div className="flex items-center gap-4 text-sm text-zinc-400">
                     <span className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full border border-amber-300/60 bg-amber-300/20 text-[10px] text-amber-200">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full border border-amber-300/60 bg-amber-300/20 text-[15px] text-amber-200">
                         B
                       </span>
                       복주머니
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full border border-amber-300/60 bg-amber-300/20 text-[10px] text-amber-200">
-                        T
-                      </span>
-                      달란트
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full border border-amber-300/60 bg-amber-300/20 text-[10px] text-amber-200">
-                        N
-                      </span>
-                      쪽지
                     </span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center flex-wrap mb-4">
             <Button
               className="rounded-full bg-white px-8 text-black hover:bg-white/90"
               onClick={() => setAlertOpen(true)}
@@ -174,45 +204,110 @@ function Stage5Screen({
             </Button>
           </div>
         </div>
-      ) : (
-        <div className="flex w-full flex-col items-center gap-4">
-          <Card className="w-full max-w-3xl rounded-3xl border-zinc-800 bg-zinc-950/70 text-white">
-            <CardHeader>
-              <CardTitle className="text-xl sm:text-2xl">지도 위치</CardTitle>
-            </CardHeader>
-            <CardContent className="text-base text-zinc-200 sm:text-lg">
-              식탁 밑에 지도가 붙어 있다.
-            </CardContent>
-          </Card>
+      ) : pageIndex === 1 ? (
+        <div className="flex w-full flex-col items-center justify-center gap-4 flex-wrap mb-4">
+          <div className="w-full max-w-3xl rounded-3xl border-zinc-800 bg-zinc-950/70 text-white">
+            <div className="text-base text-zinc-200 sm:text-lg items-center justify-center text-center">
+              <button
+                type="button"
+                className="nes-btn is-primary w-full sm:w-auto"
+                onClick={() => setShowMapHint((prev) => !prev)}
+              >
+                지도 위치
+              </button>
+              {showMapHint ? (
+                <div className="mt-5 flex flex-col items-center gap-3 text-center text-zinc-100">
+                  <div className="text-9xl">🪑⬇️🗺️</div>
+                  <div className="text-3xl text-zinc-300">
+                    식탁 아래에 지도가 있다.
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
           <Button
             className="rounded-full bg-white px-8 text-black hover:bg-white/90"
-            onClick={onNextStage}
-            disabled={!canAdvanceStage}
+            onClick={() => {
+              setShowMapHint(false);
+              setPageIndex(2);
+            }}
           >
             다음 페이지
           </Button>
         </div>
+      ) : (
+        <div className="flex w-full flex-col items-center justify-center gap-4 flex-wrap mb-4">
+          <div className="w-full max-w-3xl rounded-3xl border-zinc-800 bg-zinc-950/70 text-white p-6">
+            <div className="text-center text-base text-zinc-200 sm:text-lg">
+              목적지를 입력하세요.
+            </div>
+            <div className="mt-4 flex justify-center">
+              <input
+                value={destinationInput}
+                onChange={(event) => setDestinationInput(event.target.value)}
+                className="h-12 w-full max-w-md rounded-2xl border border-zinc-700 bg-zinc-950 px-4 text-center text-lg text-white"
+                placeholder="목적지 입력"
+              />
+            </div>
+            <div className="mt-4 flex justify-center">
+              <Button
+                className="rounded-full bg-white px-8 text-black hover:bg-white/90"
+                onClick={() => {
+                  const isCorrect = destinationInput.trim() === '윈드홀';
+                  if (!isCorrect) return;
+                  setActionAlertOpen(true);
+                }}
+              >
+                확인
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
-      <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
-        <AlertDialogContent className="border-zinc-800 bg-zinc-950 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              탐험자는 지금 바로 탐험을 떠나세요.
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          <div className="flex justify-end">
-            <AlertDialogAction
-              className="bg-white text-black hover:bg-white/90"
+      <dialog
+        ref={alertDialogRef}
+        className="nes-dialog is-rounded w-[90vw] max-w-[520px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl items-center justify-center text-white"
+        style={{ backgroundColor: '#111827', backgroundImage: 'none' }}
+        onClose={() => setAlertOpen(false)}
+      >
+        <form method="dialog">
+          <p className="title text-center">
+            탐험자는 지금 바로 탐험을 떠나세요.
+          </p>
+          <menu className="dialog-menu flex justify-end">
+            <button
+              className="nes-btn "
               onClick={() => {
                 setAlertOpen(false);
-                setPhase('reveal');
+                setPageIndex(1);
               }}
             >
               확인
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
+            </button>
+          </menu>
+        </form>
+      </dialog>
+      <dialog
+        ref={actionDialogRef}
+        className="nes-dialog is-rounded w-[90vw] max-w-[520px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl items-center justify-center text-white"
+        style={{ backgroundColor: '#111827', backgroundImage: 'none' }}
+        onClose={() => setActionAlertOpen(false)}
+      >
+        <form method="dialog">
+          <p className="title text-center">행동하세요.</p>
+          <menu className="dialog-menu flex justify-end">
+            <button
+              className="nes-btn"
+              onClick={() => {
+                setActionAlertOpen(false);
+                if (canAdvanceStage) onNextStage();
+              }}
+            >
+              확인
+            </button>
+          </menu>
+        </form>
+      </dialog>
     </section>
   );
 }
@@ -225,10 +320,7 @@ const stage5: StageEntry = {
   question,
   answer: '',
   renderPuzzle: ({ onNextStage, canAdvanceStage }) => (
-    <Stage5Screen
-      onNextStage={onNextStage}
-      canAdvanceStage={canAdvanceStage}
-    />
+    <Stage5Screen onNextStage={onNextStage} canAdvanceStage={canAdvanceStage} />
   ),
 };
 

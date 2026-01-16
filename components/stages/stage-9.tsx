@@ -28,7 +28,7 @@ const stage9: StageEntry = {
           </p>
         </CardContent>
       </Card>
-      <div className="flex justify-center">
+      <div className="flex justify-center flex-wrap mb-4 mt-4">
         <Button
           className="rounded-full bg-white px-8 text-black hover:bg-white/90"
           onClick={onNextStage}

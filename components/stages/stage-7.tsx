@@ -16,10 +16,10 @@ const puzzleTitle = '오병이어';
 const question =
   '네 개의 요소는 자리를 가질 수 있지만 \n 그 자체로는 숫자가 아니다. \n 올바른 배치를 완성하시오.';
 const conditions = [
-  '✝️와 🐟는 서로 붙어있다.',
-  '🍞은 👥의 왼쪽에 있다.',
-  '👥은 맨 왼쪽에 있지 않다.',
-  '✝️는 🍞의 오른쪽에 있다.',
+  '조건 1. ✝️와 🐟는 서로 붙어있다.',
+  '조건 2. 🍞은 👥의 왼쪽에 있다.',
+  '조건 3. 👥은 맨 왼쪽에 있지 않다.',
+  '조건 4. ✝️는 🍞의 오른쪽에 있다.',
 ];
 
 const cards = [
@@ -137,9 +137,21 @@ function Stage7Screen({
           <CardTitle className="text-2xl sm:text-3xl">{puzzleTitle}</CardTitle>
         </CardHeader>
         <CardContent className="px-8">
-          <p className="whitespace-pre-line text-base text-zinc-200 sm:text-lg">
+          <p className="title text-center text-2xl text-yellow-300">
+            &lt;메인 제시문&gt;
+          </p>
+          <p className="whitespace-pre-line text-base text-center text-yellow-300 sm:text-2xl">
             {question}
           </p>
+          <div className="mt-4 flex justify-center">
+            <div className="max-w-2xl text-left text-2xl text-zinc-200 sm:text-xl">
+              {conditions.map((line) => (
+                <p key={line} className="whitespace-pre-line">
+                  {line}
+                </p>
+              ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -226,38 +238,39 @@ function Stage7Screen({
                 })}
               </div>
             </div>
-            <div className="w-full max-w-4xl rounded-2xl border border-zinc-800 bg-zinc-950/80 p-3 text-sm text-zinc-200">
-              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-zinc-500">
-                조건
-                <span className="h-px flex-1 bg-zinc-800" />
-              </div>
-              <div className="mt-3 space-y-2">
-                {conditions.map((condition, index) => (
-                  <div
-                    key={condition}
-                    className="flex items-start gap-2 rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2"
-                  >
-                    <span className="text-sm text-zinc-500">{index + 1}.</span>
-                    <span>{condition}</span>
-                  </div>
-                ))}
-              </div>
+
+            <div className="flex justify-center flex-wrap mb-4">
+              <Button
+                className="rounded-full bg-white px-8 text-black hover:bg-white/90"
+                onClick={handleCheck}
+              >
+                정답 확인
+              </Button>
             </div>
-            <Button
-              className="rounded-full bg-white px-8 text-black hover:bg-white/90"
-              onClick={handleCheck}
-            >
-              정답 확인
-            </Button>
           </>
         ) : (
           <div className="w-full max-w-3xl rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 text-white">
             <div className="text-xs uppercase tracking-[0.3em] text-zinc-500">
               힌트
             </div>
-            <p className="mt-3 text-base text-zinc-200 sm:text-lg">
-              오병이어의 수를 떠올려라. 떡과 물고기의 수가 길이 된다.
-            </p>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { icon: '🍞', label: '떡' },
+                { icon: '✝', label: '십자가' },
+                { icon: '🐟', label: '물고기' },
+                { icon: '👥', label: '사람' },
+              ].map(({ icon, label }) => (
+                <div
+                  key={label}
+                  className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3 py-4 text-3xl shadow-sm sm:text-4xl"
+                >
+                  <span>{icon}</span>
+                  <span className="text-xs text-zinc-300 sm:text-sm">
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
             <div className="mt-6">
               <input
                 value={finalInput}

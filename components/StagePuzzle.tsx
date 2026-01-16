@@ -5,13 +5,6 @@ import QrScanner from 'qr-scanner';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Drawer,
@@ -29,6 +22,7 @@ type StagePuzzleProps = {
   questionExtra?: ReactNode;
   puzzleImage?: string;
   inputMode?: 'drawer' | 'qr' | 'coord' | 'bingo';
+  qrAnswers?: string[];
   bingoBoard?: string[][];
   bingoAnswer?: string[];
   bingoFinalQuestion?: string;
@@ -47,6 +41,7 @@ export default function StagePuzzle({
   questionExtra,
   puzzleImage,
   inputMode = 'drawer',
+  qrAnswers,
   bingoBoard,
   bingoAnswer = [],
   bingoFinalQuestion,
@@ -62,6 +57,7 @@ export default function StagePuzzle({
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [shouldAdvance, setShouldAdvance] = useState(false);
   const [shouldReset, setShouldReset] = useState(false);
+  const [qrEntry, setQrEntry] = useState('');
   const [scanError, setScanError] = useState<string | null>(null);
   const [showScanner, setShowScanner] = useState(false);
   const [bingoProgress, setBingoProgress] = useState(0);
@@ -76,6 +72,8 @@ export default function StagePuzzle({
   const [bingoFinalUnlocked, setBingoFinalUnlocked] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const scannerRef = useRef<QrScanner | null>(null);
+  const alertDialogRef = useRef<HTMLDialogElement | null>(null);
+  const bingoDialogRef = useRef<HTMLDialogElement | null>(null);
   const showScannerRef = useRef(showScanner);
   const onAnswerChangeRef = useRef(onAnswerChange);
   const wrongTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -83,6 +81,13 @@ export default function StagePuzzle({
   const isBingoFinal = inputMode === 'bingo' && bingoFinalUnlocked;
   const displayQuestion =
     isBingoFinal && bingoFinalQuestion ? bingoFinalQuestion : question;
+  const normalizedQrAnswers = (qrAnswers ?? []).map((value) =>
+    value.trim().toLowerCase()
+  );
+  const qrMatchedCount = normalizedQrAnswers.reduce((count, value, index) => {
+    const current = (answer[index] ?? '').trim().toLowerCase();
+    return count + (current === value ? 1 : 0);
+  }, 0);
 
   useEffect(() => {
     onAnswerChangeRef.current = onAnswerChange;
@@ -127,6 +132,38 @@ export default function StagePuzzle({
   }, []);
 
   const handleSubmit = () => {
+    if (inputMode === 'qr' && normalizedQrAnswers.length) {
+      const normalizedEntry = qrEntry.trim().toLowerCase();
+      if (!normalizedEntry) return;
+      const matchIndex = normalizedQrAnswers.indexOf(normalizedEntry);
+      if (matchIndex === -1) {
+        setAlertMessage('오답입니다');
+        setShouldAdvance(false);
+        setShouldReset(false);
+        setQrEntry('');
+        return;
+      }
+      const alreadyMatched =
+        (answer[matchIndex] ?? '').trim().toLowerCase() === normalizedEntry;
+      if (alreadyMatched) {
+        setAlertMessage('이미 입력한 값입니다');
+        setShouldAdvance(false);
+        setShouldReset(false);
+        return;
+      }
+      onAnswerChange(matchIndex, qrAnswers?.[matchIndex] ?? normalizedEntry);
+      setQrEntry('');
+      if (qrMatchedCount + 1 === normalizedQrAnswers.length) {
+        setAlertMessage('정답입니다');
+        setShouldAdvance(true);
+        setShouldReset(false);
+        return;
+      }
+      setAlertMessage('정답입니다');
+      setShouldAdvance(false);
+      setShouldReset(false);
+      return;
+    }
     const result = onSubmit();
     if (!result) return;
     setAlertMessage(result === 'correct' ? '정답입니다' : '오답입니다');
@@ -214,6 +251,30 @@ export default function StagePuzzle({
     }
   }, [showScanner]);
 
+  useEffect(() => {
+    const dialog = alertDialogRef.current;
+    if (!dialog) return;
+    if (alertMessage !== null && !dialog.open) {
+      dialog.showModal();
+      return;
+    }
+    if (alertMessage === null && dialog.open) {
+      dialog.close();
+    }
+  }, [alertMessage]);
+
+  useEffect(() => {
+    const dialog = bingoDialogRef.current;
+    if (!dialog) return;
+    if (bingoAlertOpen && !dialog.open) {
+      dialog.showModal();
+      return;
+    }
+    if (!bingoAlertOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [bingoAlertOpen]);
+
   return (
     <section className="flex flex-1 flex-col gap-6 min-h-0">
       <Card className="rounded-3xl border-zinc-800 bg-zinc-900/70 text-white">
@@ -221,9 +282,11 @@ export default function StagePuzzle({
           <CardTitle className="text-2xl sm:text-3xl">{title}</CardTitle>
         </CardHeader>
         <CardContent className="px-8">
-          <p className="whitespace-pre-line text-base text-zinc-200 sm:text-lg">
-            {displayQuestion}
-          </p>
+          {displayQuestion ? (
+            <p className="whitespace-pre-line text-base text-zinc-200 sm:text-lg">
+              {displayQuestion}
+            </p>
+          ) : null}
           {questionExtra && <div className="mt-5">{questionExtra}</div>}
           {inputMode === 'qr' && (
             <div className="mt-6 flex">
@@ -252,13 +315,13 @@ export default function StagePuzzle({
         </CardContent>
       </Card>
 
-      <div className="flex flex-wrap items-center justify-center gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-4 mb-6 mt-5">
         {inputMode === 'drawer' && (
           <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <DrawerTrigger asChild>
-              <Button className="rounded-full bg-white text-black hover:bg-white/90">
+              <button type="button" className="nes-btn is-primary">
                 정답 입력
-              </Button>
+              </button>
             </DrawerTrigger>
             <DrawerContent className="border-zinc-800 bg-zinc-950 text-white data-[vaul-drawer-direction=bottom]:bottom-[20vh] data-[state=closed]:translate-y-full data-[state=open]:translate-y-0">
               <DrawerHeader>
@@ -277,13 +340,13 @@ export default function StagePuzzle({
                         if (event.key === 'Enter') handleSubmit();
                       }}
                       maxLength={1}
-                      className="h-20 w-20 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
+                      className="h-20 w-20 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-4xl text-white font-[var(--font-geist-sans)] tracking-wide"
                       placeholder="?"
                     />
                   ))}
                 </div>
               </div>
-              <DrawerFooter className="flex-row justify-center gap-3">
+              <DrawerFooter className="flex-row justify-center gap-3 ">
                 <Button
                   className="w-auto px-10 bg-white text-black hover:bg-white/90"
                   onClick={handleSubmit}
@@ -320,75 +383,31 @@ export default function StagePuzzle({
                 {scanError}
               </p>
             )}
-            <div className="mt-4 flex items-center justify-center gap-3 text-3xl text-white">
-              <span>[</span>
+            <div className="mt-4 flex flex-col items-center justify-center gap-4 text-white">
+              <div
+                key={qrMatchedCount}
+                className={`text-2xl transition-colors ${
+                  qrMatchedCount > 0
+                    ? 'text-emerald-300 animate-pulse'
+                    : 'text-zinc-300'
+                }`}
+              >
+                {qrMatchedCount}/{normalizedQrAnswers.length}
+              </div>
               <Input
-                value={answer[0] ?? ''}
+                value={qrEntry}
                 onChange={(event) =>
-                  onAnswerChange(
-                    0,
-                    event.target.value.replace(/\D/g, '').slice(-1)
+                  setQrEntry(
+                    event.target.value.replace(/[^0-9,]/g, '').slice(0, 12)
                   )
                 }
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') handleSubmit();
                 }}
-                inputMode="numeric"
-                maxLength={1}
-                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
-                placeholder="0"
+                inputMode="text"
+                className="h-20 w-56 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-white font-[var(--font-geist-sans)] leading-none !text-2xl  sm:h-16 sm:w-56"
+                placeholder="1,2,3"
               />
-              <Input
-                value={answer[1] ?? ''}
-                onChange={(event) =>
-                  onAnswerChange(
-                    1,
-                    event.target.value.replace(/\D/g, '').slice(-1)
-                  )
-                }
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') handleSubmit();
-                }}
-                inputMode="numeric"
-                maxLength={1}
-                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
-                placeholder="0"
-              />
-              <span>,</span>
-              <Input
-                value={answer[2] ?? ''}
-                onChange={(event) =>
-                  onAnswerChange(
-                    2,
-                    event.target.value.replace(/\D/g, '').slice(-1)
-                  )
-                }
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') handleSubmit();
-                }}
-                inputMode="numeric"
-                maxLength={1}
-                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
-                placeholder="0"
-              />
-              <span>,</span>
-              <Input
-                value={answer[3] ?? ''}
-                onChange={(event) =>
-                  onAnswerChange(
-                    3,
-                    event.target.value.replace(/\D/g, '').slice(-1)
-                  )
-                }
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') handleSubmit();
-                }}
-                inputMode="numeric"
-                maxLength={1}
-                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
-                placeholder="0"
-              />
-              <span>]</span>
             </div>
             <div className="mt-4 flex justify-center gap-3">
               <Button
@@ -400,7 +419,9 @@ export default function StagePuzzle({
               <Button
                 variant="outline"
                 className="border-black bg-black text-white hover:bg-white/10"
-                onClick={onReset}
+                onClick={() => {
+                  setQrEntry('');
+                }}
               >
                 초기화
               </Button>
@@ -634,23 +655,26 @@ export default function StagePuzzle({
           </div>
         )}
       </div>
-      <AlertDialog
-        open={alertMessage !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setAlertMessage(null);
-            setShouldAdvance(false);
-            setShouldReset(false);
-          }
+      <dialog
+        ref={alertDialogRef}
+        className={`nes-dialog is-rounded w-[90vw] max-w-[520px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${
+          shouldAdvance
+            ? 'bg-emerald-900 text-2xl items-center justify-center text-white'
+            : shouldReset
+            ? 'bg-rose-900 text-2xl items-center justify-center text-white'
+            : 'is-dark'
+        }`}
+        onClose={() => {
+          setAlertMessage(null);
+          setShouldAdvance(false);
+          setShouldReset(false);
         }}
       >
-        <AlertDialogContent className="border-zinc-800 bg-zinc-950 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{alertMessage}</AlertDialogTitle>
-          </AlertDialogHeader>
-          <div className="flex justify-end">
-            <AlertDialogAction
-              className="bg-white text-black hover:bg-white/90"
+        <form method="dialog">
+          <p className="title text-center">{alertMessage ?? ''}</p>
+          <menu className="dialog-menu flex justify-end">
+            <button
+              className="nes-btn "
               onClick={() => {
                 if (shouldAdvance && canAdvanceStage) onNextStage();
                 if (shouldReset) {
@@ -660,28 +684,30 @@ export default function StagePuzzle({
               }}
             >
               확인
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog open={bingoAlertOpen} onOpenChange={setBingoAlertOpen}>
-        <AlertDialogContent className="border-zinc-800 bg-zinc-950 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>문장대로 행동하세요.</AlertDialogTitle>
-          </AlertDialogHeader>
-          <div className="flex justify-end">
-            <AlertDialogAction
-              className="bg-white text-black hover:bg-white/90"
+            </button>
+          </menu>
+        </form>
+      </dialog>
+      <dialog
+        ref={bingoDialogRef}
+        className="nes-dialog is-dark is-rounded w-[90vw] max-w-[520px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        onClose={() => setBingoAlertOpen(false)}
+      >
+        <form method="dialog">
+          <p className="title text-center text-xl">문장대로 행동하세요.</p>
+          <menu className="dialog-menu flex justify-end">
+            <button
+              className="nes-btn "
               onClick={() => {
                 setBingoAlertOpen(false);
                 setBingoFinalUnlocked(true);
               }}
             >
               확인
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
+            </button>
+          </menu>
+        </form>
+      </dialog>
     </section>
   );
 }

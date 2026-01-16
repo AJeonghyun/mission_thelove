@@ -49,11 +49,33 @@ export default function StagePage() {
       setInput(['']);
       return;
     }
+    if (stage.inputMode === 'qr' && stage.qrAnswers?.length) {
+      setInput(Array.from({ length: stage.qrAnswers.length }, () => ''));
+      return;
+    }
     setInput(Array.from({ length: stage.answer.length }, () => ''));
   }, [stage]);
 
   const submitAnswer = (): 'correct' | 'wrong' | null => {
     if (!stage) return null;
+    if (stage.inputMode === 'qr' && stage.qrAnswers?.length) {
+      const normalizedInputs = input.map((value) =>
+        value.trim().toLowerCase()
+      );
+      if (normalizedInputs.some((value) => !value)) return null;
+      const normalizedQr = stage.qrAnswers.map((value) =>
+        value.trim().toLowerCase()
+      );
+      const isCorrect =
+        normalizedInputs.length === normalizedQr.length &&
+        normalizedInputs.every((value, index) => value === normalizedQr[index]);
+      if (isCorrect) {
+        setStatus('cleared');
+        return 'correct';
+      }
+      setStatus('wrong');
+      return 'wrong';
+    }
     const normalizedInput = input.join('').trim().toLowerCase();
     if (!normalizedInput) return null;
     if (normalizedInput === normalizedAnswer) {
@@ -149,6 +171,9 @@ export default function StagePage() {
           <StageIntro
             title={stage.title}
             images={stage.introImages}
+            narrations={stage.introNarrations}
+            overlayImage={stage.introOverlayImage}
+            overlayText={stage.introOverlayText}
             introIndex={introIndex}
             isFirst={isFirstIntro}
             isLast={isLastIntro}
@@ -156,18 +181,38 @@ export default function StagePage() {
             onNext={goNextIntro}
           />
         ) : (
-          stage.renderPuzzle({
-            answer: input,
-            status,
-            onAnswerChange: handleAnswerChange,
-            onSubmit: submitAnswer,
-            onReset: () => {
-              setInput(['']);
-              setStatus('idle');
-            },
-            onNextStage: goNextStage,
-            canAdvanceStage,
-          })
+          <>
+            {stage.renderPuzzle({
+              answer: input,
+              status,
+              onAnswerChange: handleAnswerChange,
+              onSubmit: submitAnswer,
+              onReset: () => {
+                setInput(['']);
+                setStatus('idle');
+              },
+              onNextStage: goNextStage,
+              canAdvanceStage,
+            })}
+            <div className="flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                className="rounded-full border-white/20 text-white hover:bg-white/10"
+                onClick={goPrevStage}
+                disabled={stageIndex === 0}
+              >
+                이전 문제
+              </Button>
+              <Button
+                variant="outline"
+                className="rounded-full border-white/20 text-white hover:bg-white/10"
+                onClick={goNextStage}
+                disabled={!canAdvanceStage}
+              >
+                다음 문제
+              </Button>
+            </div>
+          </>
         )}
       </main>
     </div>
