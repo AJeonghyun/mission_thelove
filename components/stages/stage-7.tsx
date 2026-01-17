@@ -1,14 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { StageEntry } from './types';
 
@@ -49,8 +42,11 @@ function Stage7Screen({
   ]);
   const [phase, setPhase] = useState<'order' | 'final'>('order');
   const [finalInput, setFinalInput] = useState('');
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertType, setAlertType] = useState<'correct' | 'wrong'>('correct');
+  const [alertMessage, setAlertMessage] = useState('');
   const [shouldAdvance, setShouldAdvance] = useState(false);
+  const alertDialogRef = useRef<HTMLDialogElement | null>(null);
   const [selectedCard, setSelectedCard] = useState<{
     id: (typeof cards)[number]['id'];
     from: 'pool' | 'slot';
@@ -60,6 +56,18 @@ function Stage7Screen({
   const cardMap = useMemo(() => {
     return new Map(cards.map((card) => [card.id, card]));
   }, []);
+
+  useEffect(() => {
+    const dialog = alertDialogRef.current;
+    if (!dialog) return;
+    if (alertOpen && !dialog.open) {
+      dialog.showModal();
+      return;
+    }
+    if (!alertOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [alertOpen]);
 
   const moveToSlot = (
     toIndex: number,
@@ -90,7 +98,9 @@ function Stage7Screen({
       slots.every((id) => id !== null) &&
       slots.every((id, index) => id === correctOrder[index]);
     if (isCorrect) {
+      setAlertType('correct');
       setAlertMessage('정답입니다');
+      setAlertOpen(true);
       setShouldAdvance(false);
       setPhase('final');
       return;
@@ -99,7 +109,9 @@ function Stage7Screen({
     setPool(['people', 'fish', 'cross', 'bread']);
     setShouldAdvance(false);
     setSelectedCard(null);
+    setAlertType('wrong');
     setAlertMessage('오답입니다. 카드가 초기화되었습니다.');
+    setAlertOpen(true);
   };
 
   const handleSlotClick = (index: number) => {
@@ -286,8 +298,10 @@ function Stage7Screen({
                 className="rounded-full bg-white px-8 text-black hover:bg-white/90"
                 onClick={() => {
                   const isCorrect = finalInput === '7';
+                  setAlertType(isCorrect ? 'correct' : 'wrong');
                   setAlertMessage(isCorrect ? '정답입니다' : '오답입니다');
                   setShouldAdvance(isCorrect);
+                  setAlertOpen(true);
                 }}
               >
                 제출
@@ -297,33 +311,35 @@ function Stage7Screen({
         )}
       </div>
 
-      <AlertDialog
-        open={alertMessage !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setAlertMessage(null);
-            setShouldAdvance(false);
-          }
+      <dialog
+        ref={alertDialogRef}
+        className="nes-dialog is-rounded w-[90vw] max-w-[520px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl items-center justify-center text-white"
+        style={{
+          backgroundColor: alertType === 'correct' ? '#047857' : '#881337',
+          backgroundImage: 'none',
+        }}
+        onClose={() => {
+          setAlertOpen(false);
+          setShouldAdvance(false);
         }}
       >
-        <AlertDialogContent className="border-zinc-800 bg-zinc-950 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{alertMessage}</AlertDialogTitle>
-          </AlertDialogHeader>
-          <div className="flex justify-end">
-            <AlertDialogAction
-              className="bg-white text-black hover:bg-white/90"
+        <form method="dialog">
+          <p className="title text-center">{alertMessage}</p>
+          <menu className="dialog-menu flex justify-end">
+            <button
+              className="nes-btn"
               onClick={() => {
-                if (shouldAdvance && canAdvanceStage) {
+                setAlertOpen(false);
+                if (alertType === 'correct' && shouldAdvance && canAdvanceStage) {
                   onNextStage();
                 }
               }}
             >
               확인
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
+            </button>
+          </menu>
+        </form>
+      </dialog>
     </section>
   );
 }

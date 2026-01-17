@@ -82,11 +82,11 @@ function Stage5Screen({
                 <ul className="nes-list is-disc">
                   <li>역할: 안내자 / 탐험자</li>
                   <li className="text-emerald-300">
-                    탐험자 2명: ‘ㅇ’ 포함 1명 + 최연소 1명
+                    탐험자 2명: 이름에 ‘ㅇ’ 포함 1명 / 생일 가장 빠른 1명
                   </li>
-                  <li className="text-emerald-300">B1 아너스홀 이동</li>
+                  <li className="text-emerald-300"> -&gt; B1 아너스홀 이동</li>
                   <li>서로 못 봄, 전화만 가능</li>
-                  <li>탐험자=선생님폰 / 안내자=조 스태프폰</li>
+                  <li>탐험자 - 선생님 폰 / 안내자 - 조스탭 폰</li>
                   <li>복주머니 찾고 EXIT 도착</li>
                 </ul>
               </div>
