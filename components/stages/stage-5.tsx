@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useEffect, useRef } from 'react';
 import {
   Card,
   CardAction,
@@ -36,6 +35,10 @@ function Stage5Screen({
   const [showMapHint, setShowMapHint] = useState(false);
   const [destinationInput, setDestinationInput] = useState('');
   const [actionAlertOpen, setActionAlertOpen] = useState(false);
+  const [actionAlertType, setActionAlertType] = useState<'correct' | 'wrong'>(
+    'correct',
+  );
+  const [actionAlertMessage, setActionAlertMessage] = useState('');
   const alertDialogRef = useRef<HTMLDialogElement | null>(null);
   const actionDialogRef = useRef<HTMLDialogElement | null>(null);
 
@@ -254,7 +257,10 @@ function Stage5Screen({
                 className="rounded-full bg-white px-8 text-black hover:bg-white/90"
                 onClick={() => {
                   const isCorrect = destinationInput.trim() === '윈드홀';
-                  if (!isCorrect) return;
+                  setActionAlertType(isCorrect ? 'correct' : 'wrong');
+                  setActionAlertMessage(
+                    isCorrect ? '행동하세요.' : '오답입니다.',
+                  );
                   setActionAlertOpen(true);
                 }}
               >
@@ -290,17 +296,26 @@ function Stage5Screen({
       <dialog
         ref={actionDialogRef}
         className="nes-dialog is-rounded w-[90vw] max-w-[520px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl items-center justify-center text-white"
-        style={{ backgroundColor: '#111827', backgroundImage: 'none' }}
-        onClose={() => setActionAlertOpen(false)}
+        style={{
+          backgroundColor:
+            actionAlertType === 'correct' ? '#047857' : '#881337',
+          backgroundImage: 'none',
+        }}
+        onClose={() => {
+          setActionAlertOpen(false);
+          setActionAlertMessage('');
+        }}
       >
         <form method="dialog">
-          <p className="title text-center">행동하세요.</p>
+          <p className="title text-center">{actionAlertMessage}</p>
           <menu className="dialog-menu flex justify-end">
             <button
               className="nes-btn"
               onClick={() => {
                 setActionAlertOpen(false);
-                if (canAdvanceStage) onNextStage();
+                if (actionAlertType === 'correct' && canAdvanceStage) {
+                  onNextStage();
+                }
               }}
             >
               확인
