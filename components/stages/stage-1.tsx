@@ -14,7 +14,7 @@ const introNarrations = [
 const introImages = [
   ...Array.from(
     { length: 2 + introNarrations.length },
-    () => '/pixel/intro.webp'
+    () => '/pixel/intro.webp',
   ),
 ];
 const puzzleImage = '/game1.webp';
@@ -24,7 +24,7 @@ const questionOverlay = (
   <div className="relative w-full max-h-[60vh] overflow-hidden rounded-3xl aspect-[4/3] text-2xl">
     <div className="absolute inset-0 flex flex-col items-center justify-start gap-2 p-8 text-center">
       <p className="whitespace-pre-line">{question}</p>
-      <div className="relative w-[70%] max-w-[760px] aspect-[4/3]">
+      <div className="relative w-[50%] max-w-[860px] aspect-[4/3]">
         <Image
           src="/game1.webp"
           alt="Game 1"
