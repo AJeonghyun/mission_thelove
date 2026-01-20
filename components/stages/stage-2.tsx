@@ -1,7 +1,7 @@
 import StagePuzzle from '../StagePuzzle';
 import type { StageEntry } from './types';
 
-const puzzleTitle = '사탄의 복도';
+const puzzleTitle = '사탄의 시험';
 const question =
   '사탄은 우리를 시험에 들게 하기 위해 수많은 QR을 준비해 두었다.\n\n진짜 QR을 찾아서 문제를 해결해라.';
 const qrAnswers = [
