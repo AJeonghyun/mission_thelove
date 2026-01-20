@@ -8,12 +8,6 @@ import type { StageEntry } from './types';
 const puzzleTitle = '사탄의 수수께끼';
 const question =
   '네 개의 요소는 자리를 가질 수 있지만 \n 그 자체로는 숫자가 아니다. \n 올바른 배치를 완성하시오.';
-const conditions = [
-  '조건 1. ✝️와 🐟는 서로 붙어있다.',
-  '조건 2. 🍞은 👥의 왼쪽에 있다.',
-  '조건 3. 👥은 맨 왼쪽에 있지 않다.',
-  '조건 4. ✝️는 🍞의 오른쪽에 있다.',
-];
 
 const cards = [
   { id: 'bread', label: '떡', emoji: '🍞' },
@@ -40,8 +34,6 @@ function Stage7Screen({
     'bread',
     'cross',
   ]);
-  const [phase, setPhase] = useState<'order' | 'final'>('order');
-  const [finalInput, setFinalInput] = useState('');
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<'correct' | 'wrong'>('correct');
   const [alertMessage, setAlertMessage] = useState('');
@@ -101,8 +93,7 @@ function Stage7Screen({
       setAlertType('correct');
       setAlertMessage('정답입니다');
       setAlertOpen(true);
-      setShouldAdvance(false);
-      setPhase('final');
+      setShouldAdvance(true);
       return;
     }
     setSlots([null, null, null, null]);
@@ -144,173 +135,120 @@ function Stage7Screen({
 
   return (
     <section className="flex flex-1 flex-col gap-6 min-h-0">
-      <Card className="w-full max-w-4xl mx-auto rounded-3xl border-zinc-800 bg-zinc-900/70 text-white">
-        <CardHeader className="px-6">
-          <CardTitle className="text-xl sm:text-2xl">{puzzleTitle}</CardTitle>
+      <Card className="rounded-3xl border-zinc-800 bg-zinc-900/70 text-white">
+        <CardHeader className="px-8">
+          <CardTitle className="text-2xl sm:text-3xl">{puzzleTitle}</CardTitle>
         </CardHeader>
-        <CardContent className="px-6">
-          <p className="title text-center text-base text-white">
-            &lt;메인 제시문&gt;
-          </p>
-          <p className="whitespace-pre-line text-sm text-center text-white sm:text-2xl">
-            {question}
-          </p>
+        <CardContent className="px-8">
+          <div className="grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-950/70 p-5">
+              <div className="text-xs uppercase tracking-[0.3em] text-zinc-500">
+                메인 제시문
+              </div>
+              <p className="mt-3 whitespace-pre-line text-base text-zinc-200 sm:text-lg">
+                {question}
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       <div className="flex w-full flex-col items-center gap-4">
-        {phase === 'order' ? (
-          <>
-            <div
-              className="w-full max-w-4xl rounded-2xl border border-zinc-800 bg-zinc-950/70 p-4"
-              onClick={handlePoolClick}
-            >
-              <div className="text-xs text-zinc-400">카드 목록</div>
-              <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {pool.map((id, index) => {
-                  const card = cardMap.get(id);
-                  const isSelected =
-                    selectedCard?.id === id && selectedCard.from === 'pool';
-                  return (
+        <div
+          className="w-full max-w-4xl rounded-2xl border border-zinc-800 bg-zinc-950/70 p-4"
+          onClick={handlePoolClick}
+        >
+          <div className="text-xs text-zinc-400">카드 목록</div>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {pool.map((id, index) => {
+              const card = cardMap.get(id);
+              const isSelected =
+                selectedCard?.id === id && selectedCard.from === 'pool';
+              return (
+                <div
+                  key={`pool-${id}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSelectedCard((prev) =>
+                      prev?.id === id && prev.from === 'pool'
+                        ? null
+                        : { from: 'pool', index, id },
+                    );
+                  }}
+                  className={`flex h-28 flex-col items-center justify-center gap-3 rounded-xl border px-4 text-center text-white ${
+                    isSelected
+                      ? 'border-sky-400 bg-zinc-900/70'
+                      : 'border-zinc-700 bg-zinc-900/70'
+                  }`}
+                >
+                  <span className="text-3xl">{card?.emoji}</span>
+                  <span className="text-sm text-zinc-200">{card?.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="w-full max-w-4xl rounded-2xl border border-zinc-800 bg-zinc-950/70 p-4">
+          <div className="text-xs text-zinc-400">정답 칸</div>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {slots.map((id, index) => {
+              const card = id ? cardMap.get(id) : null;
+              const isSelected =
+                !!card &&
+                selectedCard?.id === card.id &&
+                selectedCard.from === 'slot';
+              const showDropHint = selectedCard?.from === 'pool';
+              const showSlotBorder = !card;
+              return (
+                <div
+                  key={`slot-${index}`}
+                  className={`flex h-28 w-full items-center justify-center rounded-xl border border-dashed bg-zinc-950/60 ${
+                    showDropHint && showSlotBorder
+                      ? 'border-sky-400'
+                      : showSlotBorder
+                        ? 'border-zinc-700'
+                        : 'border-transparent'
+                  }`}
+                  onClick={() => handleSlotClick(index)}
+                >
+                  {card ? (
                     <div
-                      key={`pool-${id}`}
                       onClick={(event) => {
                         event.stopPropagation();
                         setSelectedCard((prev) =>
-                          prev?.id === id && prev.from === 'pool'
+                          prev?.id === card.id && prev.from === 'slot'
                             ? null
-                            : { from: 'pool', index, id },
+                            : { from: 'slot', index, id: card.id },
                         );
                       }}
-                      className={`flex h-28 flex-col items-center justify-center gap-3 rounded-xl border px-4 text-center text-white ${
+                      className={`flex h-full w-full flex-col items-center justify-center gap-3 rounded-xl border px-4 text-center text-white ${
                         isSelected
                           ? 'border-sky-400 bg-zinc-900/70'
                           : 'border-zinc-700 bg-zinc-900/70'
                       }`}
                     >
-                      <span className="text-3xl">{card?.emoji}</span>
+                      <span className="text-3xl">{card.emoji}</span>
                       <span className="text-sm text-zinc-200">
-                        {card?.label}
+                        {card.label}
                       </span>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="w-full max-w-4xl rounded-2xl border border-zinc-800 bg-zinc-950/70 p-4">
-              <div className="text-xs text-zinc-400">정답 칸</div>
-              <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {slots.map((id, index) => {
-                  const card = id ? cardMap.get(id) : null;
-                  const isSelected =
-                    !!card &&
-                    selectedCard?.id === card.id &&
-                    selectedCard.from === 'slot';
-                  const showDropHint = selectedCard?.from === 'pool';
-                  const showSlotBorder = !card;
-                  return (
-                    <div
-                      key={`slot-${index}`}
-                      className={`flex h-28 w-full items-center justify-center rounded-xl border border-dashed bg-zinc-950/60 ${
-                        showDropHint && showSlotBorder
-                          ? 'border-sky-400'
-                          : showSlotBorder
-                            ? 'border-zinc-700'
-                            : 'border-transparent'
-                      }`}
-                      onClick={() => handleSlotClick(index)}
-                    >
-                      {card ? (
-                        <div
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setSelectedCard((prev) =>
-                              prev?.id === card.id && prev.from === 'slot'
-                                ? null
-                                : { from: 'slot', index, id: card.id },
-                            );
-                          }}
-                          className={`flex h-full w-full flex-col items-center justify-center gap-3 rounded-xl border px-4 text-center text-white ${
-                            isSelected
-                              ? 'border-sky-400 bg-zinc-900/70'
-                              : 'border-zinc-700 bg-zinc-900/70'
-                          }`}
-                        >
-                          <span className="text-3xl">{card.emoji}</span>
-                          <span className="text-sm text-zinc-200">
-                            {card.label}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-zinc-500">선택</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex justify-center flex-wrap mb-4">
-              <Button
-                className="rounded-full bg-white px-8 text-black hover:bg-white/90"
-                onClick={handleCheck}
-              >
-                정답 확인
-              </Button>
-            </div>
-          </>
-        ) : (
-          <div className="w-full max-w-3xl rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 text-white">
-            <div className="text-xs uppercase tracking-[0.3em] text-zinc-500">
-              힌트
-            </div>
-            <p className="mt-3 text-base text-zinc-200 sm:text-lg">
-              오병이어의 수를 떠올려라. 떡과 물고기의 수가 길이 된다.
-            </p>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[
-                { icon: '🍞', label: '떡' },
-                { icon: '✝', label: '십자가' },
-                { icon: '🐟', label: '물고기' },
-                { icon: '👥', label: '사람' },
-              ].map(({ icon, label }) => (
-                <div
-                  key={label}
-                  className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3 py-4 text-3xl shadow-sm sm:text-4xl"
-                >
-                  <span>{icon}</span>
-                  <span className="text-xs text-zinc-300 sm:text-sm">
-                    {label}
-                  </span>
+                  ) : (
+                    <span className="text-xs text-zinc-500">선택</span>
+                  )}
                 </div>
-              ))}
-            </div>
-            <div className="mt-6">
-              <input
-                value={finalInput}
-                onChange={(event) =>
-                  setFinalInput(event.target.value.replace(/\D/g, ''))
-                }
-                className="h-12 w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 text-center text-lg text-white"
-                placeholder="정답 입력"
-              />
-            </div>
-            <div className="mt-4 flex justify-center">
-              <Button
-                className="rounded-full bg-white px-8 text-black hover:bg-white/90"
-                onClick={() => {
-                  const isCorrect = finalInput === '7';
-                  setAlertType(isCorrect ? 'correct' : 'wrong');
-                  setAlertMessage(isCorrect ? '정답입니다' : '오답입니다');
-                  setShouldAdvance(isCorrect);
-                  setAlertOpen(true);
-                }}
-              >
-                제출
-              </Button>
-            </div>
+              );
+            })}
           </div>
-        )}
+        </div>
+
+        <div className="flex justify-center flex-wrap mb-4">
+          <Button
+            className="rounded-full bg-white px-8 text-black hover:bg-white/90"
+            onClick={handleCheck}
+          >
+            정답 확인
+          </Button>
+        </div>
       </div>
 
       <dialog

@@ -40,7 +40,7 @@ export default function StagePage() {
 
   const normalizedAnswer = useMemo(
     () => (stage?.answer ?? '').trim().toLowerCase(),
-    [stage?.answer]
+    [stage?.answer],
   );
 
   useEffect(() => {
@@ -59,12 +59,10 @@ export default function StagePage() {
   const submitAnswer = (): 'correct' | 'wrong' | null => {
     if (!stage) return null;
     if (stage.inputMode === 'qr' && stage.qrAnswers?.length) {
-      const normalizedInputs = input.map((value) =>
-        value.trim().toLowerCase()
-      );
+      const normalizedInputs = input.map((value) => value.trim().toLowerCase());
       if (normalizedInputs.some((value) => !value)) return null;
       const normalizedQr = stage.qrAnswers.map((value) =>
-        value.trim().toLowerCase()
+        value.trim().toLowerCase(),
       );
       const isCorrect =
         normalizedInputs.length === normalizedQr.length &&
@@ -98,8 +96,13 @@ export default function StagePage() {
     return (
       <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100">
         <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col items-center justify-center gap-6 px-6 py-10">
-          <p className="text-base text-zinc-200">존재하지 않는 스테이지입니다.</p>
-          <Button asChild className="rounded-full bg-white px-8 text-black hover:bg-white/90">
+          <p className="text-base text-zinc-200">
+            존재하지 않는 스테이지입니다.
+          </p>
+          <Button
+            asChild
+            className="rounded-full bg-white px-8 text-black hover:bg-white/90"
+          >
             <Link href="/">목록으로</Link>
           </Button>
         </main>
@@ -139,34 +142,6 @@ export default function StagePage() {
   return (
     <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100">
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 overflow-y-auto px-6 py-8 sm:px-10 md:px-16 md:py-10 lg:max-w-7xl lg:px-20 md:[@media(orientation:landscape)]:py-6">
-        <header className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-zinc-500">
-          <span>Escape Room</span>
-          <span>
-            {stage.title} · {stageIndex + 1}/{stages.length}
-          </span>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="rounded-full border-white/20 text-white hover:bg-white/10">
-              <Link href="/">목록</Link>
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-full border-white/20 text-white hover:bg-white/10"
-              onClick={goPrevStage}
-              disabled={stageIndex === 0}
-            >
-              이전
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-full border-white/20 text-white hover:bg-white/10"
-              onClick={goNextStage}
-              disabled={!canAdvanceStage}
-            >
-              다음
-            </Button>
-          </div>
-        </header>
-
         {inIntro ? (
           <StageIntro
             title={stage.title}

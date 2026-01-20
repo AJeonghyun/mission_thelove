@@ -20,7 +20,7 @@ export default function Home() {
 
   const normalizedAnswer = useMemo(
     () => stage.answer.trim().toLowerCase(),
-    [stage.answer]
+    [stage.answer],
   );
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function Home() {
       const normalizedInputs = input.map((value) => value.trim().toLowerCase());
       if (normalizedInputs.some((value) => !value)) return null;
       const normalizedQr = stage.qrAnswers.map((value) =>
-        value.trim().toLowerCase()
+        value.trim().toLowerCase(),
       );
       const isCorrect =
         normalizedInputs.length === normalizedQr.length &&
@@ -103,7 +103,7 @@ export default function Home() {
     <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100">
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 overflow-y-auto px-6 py-8 sm:px-10 md:px-16 md:py-10 lg:max-w-7xl lg:px-20 md:[@media(orientation:landscape)]:py-6">
         <header className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-zinc-500">
-          <span>Escape Room</span>
+          <span>MISSION:THELOVE</span>
         </header>
 
         {inIntro ? (

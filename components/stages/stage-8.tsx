@@ -131,7 +131,7 @@ function Stage8Screen({
                   실제 금고를 열어라
                 </div>
                 <div className="mt-6 text-base text-zinc-200 sm:text-lg">
-                  정답을 입력하세요.
+                  금고 안에 있는 쪽지 문장을 해석하세요
                 </div>
                 <div className="mt-4 flex justify-center">
                   <input
@@ -153,12 +153,6 @@ function Stage8Screen({
             </CardContent>
           </Card>
           <div className="flex justify-center flex-wrap gap-3 mb-4 mt-4">
-            <Button
-              className="rounded-full border border-white/40 bg-transparent px-8 text-white hover:bg-white/10"
-              onClick={() => setPageIndex(0)}
-            >
-              문제 돌아가기
-            </Button>
             <Button
               className="rounded-full bg-white px-8 text-black hover:bg-white/90"
               onClick={() => {
