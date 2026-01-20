@@ -96,8 +96,8 @@ export default function StagePage() {
 
   if (!stage || Number.isNaN(stageNumber)) {
     return (
-      <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100">
-        <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col items-center justify-center gap-6 px-6 py-10">
+      <div className="h-full bg-zinc-950 font-sans text-zinc-100">
+        <main className="mx-auto flex h-full w-full max-w-6xl flex-col items-center justify-center gap-6 px-6 py-10">
           <p className="text-base text-zinc-200">존재하지 않는 스테이지입니다.</p>
           <Button asChild className="rounded-full bg-white px-8 text-black hover:bg-white/90">
             <Link href="/">목록으로</Link>
@@ -137,8 +137,8 @@ export default function StagePage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100">
-      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 overflow-y-auto px-6 py-8 sm:px-10 md:px-16 md:py-10 lg:max-w-7xl lg:px-20 md:[@media(orientation:landscape)]:py-6">
+    <div className="h-full bg-zinc-950 font-sans text-zinc-100">
+      <main className="mx-auto flex h-full w-full max-w-6xl flex-col gap-6 overflow-hidden px-6 py-8 sm:px-10 md:px-16 md:py-10 lg:max-w-7xl lg:px-20 md:[@media(orientation:landscape)]:py-6">
         <header className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-zinc-500">
           <span>Escape Room</span>
           <span>
