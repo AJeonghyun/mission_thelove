@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { StageEntry } from './types';
 
-const puzzleTitle = '오병이어';
+const puzzleTitle = '사탄의 수수께끼';
 const question =
   '네 개의 요소는 자리를 가질 수 있지만 \n 그 자체로는 숫자가 아니다. \n 올바른 배치를 완성하시오.';
 const conditions = [
@@ -71,7 +71,7 @@ function Stage7Screen({
 
   const moveToSlot = (
     toIndex: number,
-    cardId: (typeof cards)[number]['id']
+    cardId: (typeof cards)[number]['id'],
   ) => {
     setSlots((prevSlots) => {
       const nextSlots = [...prevSlots];
@@ -86,10 +86,10 @@ function Stage7Screen({
 
   const moveToPool = (cardId: (typeof cards)[number]['id']) => {
     setSlots((prevSlots) =>
-      prevSlots.map((value) => (value === cardId ? null : value))
+      prevSlots.map((value) => (value === cardId ? null : value)),
     );
     setPool((prevPool) =>
-      prevPool.includes(cardId) ? prevPool : [...prevPool, cardId]
+      prevPool.includes(cardId) ? prevPool : [...prevPool, cardId],
     );
   };
 
@@ -149,21 +149,12 @@ function Stage7Screen({
           <CardTitle className="text-xl sm:text-2xl">{puzzleTitle}</CardTitle>
         </CardHeader>
         <CardContent className="px-6">
-          <p className="title text-center text-base text-yellow-300">
+          <p className="title text-center text-base text-white">
             &lt;메인 제시문&gt;
           </p>
-          <p className="whitespace-pre-line text-sm text-center text-yellow-300 sm:text-xs">
+          <p className="whitespace-pre-line text-sm text-center text-white sm:text-2xl">
             {question}
           </p>
-          <div className="mt-4 flex justify-center">
-            <div className="max-w-xl text-left text-base text-zinc-200 sm:text-sm">
-              {conditions.map((line) => (
-                <p key={line} className="whitespace-pre-line">
-                  {line}
-                </p>
-              ))}
-            </div>
-          </div>
         </CardContent>
       </Card>
 
@@ -188,7 +179,7 @@ function Stage7Screen({
                         setSelectedCard((prev) =>
                           prev?.id === id && prev.from === 'pool'
                             ? null
-                            : { from: 'pool', index, id }
+                            : { from: 'pool', index, id },
                         );
                       }}
                       className={`flex h-28 flex-col items-center justify-center gap-3 rounded-xl border px-4 text-center text-white ${
@@ -215,10 +206,18 @@ function Stage7Screen({
                     !!card &&
                     selectedCard?.id === card.id &&
                     selectedCard.from === 'slot';
+                  const showDropHint = selectedCard?.from === 'pool';
+                  const showSlotBorder = !card;
                   return (
                     <div
                       key={`slot-${index}`}
-                      className="flex h-28 items-center justify-center rounded-2xl border border-dashed border-zinc-700 bg-zinc-950/60"
+                      className={`flex h-28 w-full items-center justify-center rounded-xl border border-dashed bg-zinc-950/60 ${
+                        showDropHint && showSlotBorder
+                          ? 'border-sky-400'
+                          : showSlotBorder
+                            ? 'border-zinc-700'
+                            : 'border-transparent'
+                      }`}
                       onClick={() => handleSlotClick(index)}
                     >
                       {card ? (
@@ -228,10 +227,10 @@ function Stage7Screen({
                             setSelectedCard((prev) =>
                               prev?.id === card.id && prev.from === 'slot'
                                 ? null
-                                : { from: 'slot', index, id: card.id }
+                                : { from: 'slot', index, id: card.id },
                             );
                           }}
-                          className={`flex h-28 w-full flex-col items-center justify-center gap-3 rounded-xl border px-4 text-center text-white ${
+                          className={`flex h-full w-full flex-col items-center justify-center gap-3 rounded-xl border px-4 text-center text-white ${
                             isSelected
                               ? 'border-sky-400 bg-zinc-900/70'
                               : 'border-zinc-700 bg-zinc-900/70'
@@ -265,6 +264,9 @@ function Stage7Screen({
             <div className="text-xs uppercase tracking-[0.3em] text-zinc-500">
               힌트
             </div>
+            <p className="mt-3 text-base text-zinc-200 sm:text-lg">
+              오병이어의 수를 떠올려라. 떡과 물고기의 수가 길이 된다.
+            </p>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 { icon: '🍞', label: '떡' },
@@ -330,7 +332,11 @@ function Stage7Screen({
               className="nes-btn"
               onClick={() => {
                 setAlertOpen(false);
-                if (alertType === 'correct' && shouldAdvance && canAdvanceStage) {
+                if (
+                  alertType === 'correct' &&
+                  shouldAdvance &&
+                  canAdvanceStage
+                ) {
                   onNextStage();
                 }
               }}

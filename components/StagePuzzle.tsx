@@ -63,10 +63,10 @@ export default function StagePuzzle({
   const [bingoProgress, setBingoProgress] = useState(0);
   const [wrongBingoIndex, setWrongBingoIndex] = useState<number | null>(null);
   const [correctBingoIndex, setCorrectBingoIndex] = useState<number | null>(
-    null
+    null,
   );
   const [bingoAltChoice, setBingoAltChoice] = useState<'쓴' | '안 쓴' | null>(
-    null
+    null,
   );
   const [bingoAlertOpen, setBingoAlertOpen] = useState(false);
   const [bingoFinalUnlocked, setBingoFinalUnlocked] = useState(false);
@@ -82,7 +82,7 @@ export default function StagePuzzle({
   const displayQuestion =
     isBingoFinal && bingoFinalQuestion ? bingoFinalQuestion : question;
   const normalizedQrAnswers = (qrAnswers ?? []).map((value) =>
-    value.trim().toLowerCase()
+    value.trim().toLowerCase(),
   );
   const qrMatchedCount = normalizedQrAnswers.reduce((count, value, index) => {
     const current = (answer[index] ?? '').trim().toLowerCase();
@@ -193,7 +193,7 @@ export default function StagePuzzle({
 
     QrScanner.WORKER_PATH = new URL(
       'qr-scanner/qr-scanner-worker.min.js',
-      import.meta.url
+      import.meta.url,
     ).toString();
 
     setScanError(null);
@@ -210,7 +210,7 @@ export default function StagePuzzle({
       {
         returnDetailedScanResult: true,
         preferredCamera: 'environment',
-      }
+      },
     );
     scannerRef.current = scanner;
 
@@ -398,7 +398,7 @@ export default function StagePuzzle({
                 value={qrEntry}
                 onChange={(event) =>
                   setQrEntry(
-                    event.target.value.replace(/[^0-9,]/g, '').slice(0, 12)
+                    event.target.value.replace(/[^0-9,]/g, '').slice(0, 12),
                   )
                 }
                 onKeyDown={(event) => {
@@ -492,11 +492,34 @@ export default function StagePuzzle({
                 className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
                 placeholder="?"
               />
-              <span>:</span>
               <Input
                 value={answer[5] ?? ''}
                 onChange={(event) =>
                   onAnswerChange(5, event.target.value.slice(-1))
+                }
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') handleSubmit();
+                }}
+                maxLength={1}
+                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
+                placeholder="?"
+              />
+              <Input
+                value={answer[6] ?? ''}
+                onChange={(event) =>
+                  onAnswerChange(6, event.target.value.slice(-1))
+                }
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') handleSubmit();
+                }}
+                maxLength={1}
+                className="h-20 w-16 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-3xl text-white"
+                placeholder="?"
+              />
+              <Input
+                value={answer[7] ?? ''}
+                onChange={(event) =>
+                  onAnswerChange(7, event.target.value.slice(-1))
                 }
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') handleSubmit();
@@ -565,14 +588,14 @@ export default function StagePuzzle({
                             bingoProgress === 1
                               ? ['안 쓴', '쓴']
                               : bingoProgress === 4
-                              ? [
-                                  bingoAltChoice === '안 쓴'
-                                    ? '쓴'
-                                    : bingoAltChoice === '쓴'
-                                    ? '안 쓴'
-                                    : '쓴',
-                                ]
-                              : [bingoAnswer[bingoProgress]];
+                                ? [
+                                    bingoAltChoice === '안 쓴'
+                                      ? '쓴'
+                                      : bingoAltChoice === '쓴'
+                                        ? '안 쓴'
+                                        : '쓴',
+                                  ]
+                                : [bingoAnswer[bingoProgress]];
                           if (expected.includes(cell)) {
                             setBingoProgress((prev) => prev + 1);
                             setCorrectBingoIndex(index);
@@ -586,7 +609,7 @@ export default function StagePuzzle({
                             }
                             correctTimeoutRef.current = setTimeout(
                               () => setCorrectBingoIndex(null),
-                              500
+                              500,
                             );
                             return;
                           }
@@ -596,15 +619,15 @@ export default function StagePuzzle({
                           }
                           wrongTimeoutRef.current = setTimeout(
                             () => setWrongBingoIndex(null),
-                            500
+                            500,
                           );
                         }}
                         className={`flex h-14 items-center justify-center rounded-xl border text-center text-sm text-white transition sm:h-18 sm:text-base ${
                           isWrong
                             ? 'border-rose-500 bg-rose-500/60'
                             : correctBingoIndex === index
-                            ? 'border-sky-400 bg-sky-500/60'
-                            : 'border-zinc-800 bg-zinc-950'
+                              ? 'border-sky-400 bg-sky-500/60'
+                              : 'border-zinc-800 bg-zinc-950'
                         }`}
                       >
                         {cell}
@@ -619,10 +642,10 @@ export default function StagePuzzle({
                       index === 1 && bingoAltChoice
                         ? bingoAltChoice
                         : index === 4 && bingoAltChoice
-                        ? bingoAltChoice === '안 쓴'
-                          ? '쓴'
-                          : '안 쓴'
-                        : word;
+                          ? bingoAltChoice === '안 쓴'
+                            ? '쓴'
+                            : '안 쓴'
+                          : word;
                     return (
                       <button
                         key={`bingo-answer-${index}`}
@@ -661,8 +684,8 @@ export default function StagePuzzle({
           shouldAdvance
             ? 'bg-emerald-900 text-2xl items-center justify-center text-white'
             : shouldReset
-            ? 'bg-rose-900 text-2xl items-center justify-center text-white'
-            : 'is-dark'
+              ? 'bg-rose-900 text-2xl items-center justify-center text-white'
+              : 'is-dark'
         }`}
         onClose={() => {
           setAlertMessage(null);

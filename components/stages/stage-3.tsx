@@ -20,7 +20,7 @@ const stage3: StageEntry = {
   puzzleTitle,
   question,
   inputMode: 'coord',
-  answer: '요한일서49',
+  answer: '요한일서4장9절',
   renderPuzzle: ({
     answer,
     status,

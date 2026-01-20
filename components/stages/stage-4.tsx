@@ -1,7 +1,7 @@
 import StagePuzzle from '../StagePuzzle';
 import type { StageEntry } from './types';
 
-const puzzleTitle = '사탄의 좌표';
+const puzzleTitle = '사탄의 복도';
 const question =
   '빙고판 속에서 숨은 문장을 찾아라.\n그 문장이 다음 행동을 말해준다.';
 const bingoBoard = [

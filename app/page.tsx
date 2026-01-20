@@ -100,8 +100,8 @@ export default function Home() {
   };
 
   return (
-    <div className="h-full bg-zinc-950 font-sans text-zinc-100">
-      <main className="mx-auto flex h-full w-full max-w-6xl flex-col gap-6 overflow-hidden px-6 py-8 sm:px-10 md:px-16 md:py-10 lg:max-w-7xl lg:px-20 md:[@media(orientation:landscape)]:py-6">
+    <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100">
+      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 overflow-y-auto px-6 py-8 sm:px-10 md:px-16 md:py-10 lg:max-w-7xl lg:px-20 md:[@media(orientation:landscape)]:py-6">
         <header className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-zinc-500">
           <span>Escape Room</span>
         </header>
