@@ -87,7 +87,7 @@ function Stage5Screen({
                   <li className="text-emerald-300">
                     탐험자 2명: 이름에 ‘ㅇ’ 포함 1명 / 생일 가장 빠른 1명
                   </li>
-                  <li className="text-emerald-300"> -&gt; B1 아너스홀 이동</li>
+                  <li className="text-emerald-300">-&gt; B1 아너스홀 이동</li>
                   <li>서로 못 봄, 전화만 가능</li>
                   <li>탐험자 - 선생님 폰 / 안내자 - 조스탭 폰</li>
                   <li>복주머니 찾고 EXIT 도착</li>
@@ -278,7 +278,7 @@ function Stage5Screen({
       >
         <form method="dialog">
           <p className="title text-center">
-            탐험자는 지금 바로 탐험을 떠나세요.
+            안내자는 지금 아너스홀로 떠나세요.
           </p>
           <menu className="dialog-menu flex justify-end">
             <button

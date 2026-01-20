@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+import IpadScale from '@/components/IpadScale';
 import './globals.css';
 
 const dunggeunmo = localFont({
@@ -36,7 +37,7 @@ export default function RootLayout({
       <body
         className={`${dunggeunmo.variable} ${dunggeunmoMono.variable} antialiased`}
       >
-        {children}
+        <IpadScale>{children}</IpadScale>
       </body>
     </html>
   );
