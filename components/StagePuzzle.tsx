@@ -287,6 +287,12 @@ export default function StagePuzzle({
   const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
 
   const extractImageFromHtml = (html: string, baseUrl: string) => {
+    const previewMatch = html.match(
+      /previewService\.pushData\([\s\S]*?"url"\s*:\s*"([^"]+)"/i,
+    );
+    if (previewMatch?.[1]) {
+      return new URL(previewMatch[1], baseUrl).toString();
+    }
     const ogMatch = html.match(
       /property=["']og:image["'][^>]*content=["']([^"']+)["']/i,
     );
@@ -332,17 +338,24 @@ export default function StagePuzzle({
       return;
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    let didTimeout = false;
+    const timeoutId = setTimeout(() => {
+      if (qrResolveIdRef.current !== resolveId) return;
+      didTimeout = true;
+      setQrPreviewKind('iframe');
+    }, 2000);
     qrResolveTimeoutRef.current = timeoutId;
 
     try {
       const response = await fetch(value, {
         redirect: 'follow',
-        signal: controller.signal,
       });
-      if (qrResolveIdRef.current !== resolveId) return;
+      if (qrResolveIdRef.current !== resolveId || didTimeout) return;
 
+      if (response.type === 'opaque') {
+        setQrPreviewKind('iframe');
+        return;
+      }
       const contentType = response.headers.get('content-type') ?? '';
       if (contentType.startsWith('image/')) {
         setQrPreviewUrl(response.url || value);
@@ -352,7 +365,7 @@ export default function StagePuzzle({
 
       if (contentType.includes('text/html')) {
         const html = await response.text();
-        if (qrResolveIdRef.current !== resolveId) return;
+        if (qrResolveIdRef.current !== resolveId || didTimeout) return;
         const extracted = extractImageFromHtml(html, response.url || value);
         if (extracted && isQrImageUrl(extracted)) {
           setQrPreviewUrl(extracted);
@@ -369,7 +382,7 @@ export default function StagePuzzle({
       }
     }
 
-    if (qrResolveIdRef.current === resolveId) {
+    if (qrResolveIdRef.current === resolveId && !didTimeout) {
       setQrPreviewKind('iframe');
     }
   };
