@@ -270,6 +270,8 @@ export default function StagePuzzle({
   const isQrImageUrl = (value: string) =>
     value.startsWith('data:image/') ||
     /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(value);
+  const isHttpUrl = (value: string) =>
+    /^https?:\/\//i.test(value);
 
   useEffect(() => {
     const dialog = alertDialogRef.current;
@@ -716,18 +718,42 @@ export default function StagePuzzle({
         <form method="dialog">
           <p className="title text-center text-lg">QR 이미지</p>
           <div className="mt-4 flex justify-center">
-            {qrPreviewUrl && isQrImageUrl(qrPreviewUrl) ? (
-              <img
-                src={qrPreviewUrl}
-                alt="QR result"
-                className="max-h-[60vh] w-full rounded-xl object-contain"
-              />
+            {qrPreviewUrl ? (
+              isQrImageUrl(qrPreviewUrl) ? (
+                <img
+                  src={qrPreviewUrl}
+                  alt="QR result"
+                  className="max-h-[60vh] w-full rounded-xl object-contain"
+                />
+              ) : isHttpUrl(qrPreviewUrl) ? (
+                <iframe
+                  title="QR page preview"
+                  src={qrPreviewUrl}
+                  className="h-[60vh] w-full rounded-xl border border-zinc-800 bg-black"
+                />
+              ) : (
+                <p className="text-center text-sm text-zinc-300">
+                  이미지나 웹페이지로 표시할 수 없는 QR입니다.
+                </p>
+              )
             ) : (
               <p className="text-center text-sm text-zinc-300">
-                이미지로 표시할 수 없는 QR입니다.
+                QR 결과를 불러오지 못했습니다.
               </p>
             )}
           </div>
+          {qrPreviewUrl && isHttpUrl(qrPreviewUrl) ? (
+            <div className="mt-3 text-center">
+              <a
+                href={qrPreviewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-emerald-300 underline"
+              >
+                새 탭에서 열기
+              </a>
+            </div>
+          ) : null}
           <menu className="dialog-menu mt-4 flex justify-end">
             <button className="nes-btn">확인</button>
           </menu>
