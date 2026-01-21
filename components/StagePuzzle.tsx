@@ -305,7 +305,11 @@ export default function StagePuzzle({
     }
 
     setQrPreviewKind('loading');
-    const probe = new Image();
+    if (typeof window === 'undefined') {
+      setQrPreviewKind('iframe');
+      return;
+    }
+    const probe = new window.Image();
     const timeoutId = setTimeout(() => {
       setQrPreviewKind('iframe');
     }, 2000);
