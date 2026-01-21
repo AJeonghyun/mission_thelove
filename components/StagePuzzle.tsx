@@ -98,12 +98,6 @@ export default function StagePuzzle({
   }, [showScanner]);
 
   useEffect(() => {
-    if (inputMode === 'qr') {
-      setShowScanner(true);
-    }
-  }, [inputMode]);
-
-  useEffect(() => {
     if (inputMode !== 'bingo') return;
     setBingoProgress(0);
     setWrongBingoIndex(null);
