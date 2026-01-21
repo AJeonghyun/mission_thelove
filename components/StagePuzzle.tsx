@@ -82,6 +82,12 @@ export default function StagePuzzle({
   const qrScanLockedRef = useRef(false);
   const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
   const [qrPreviewOpen, setQrPreviewOpen] = useState(false);
+  const [qrPreviewKind, setQrPreviewKind] = useState<
+    'loading' | 'image' | 'iframe' | 'unknown'
+  >('unknown');
+  const qrResolveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const isBingoFinal = inputMode === 'bingo' && bingoFinalUnlocked;
   const displayQuestion =
     isBingoFinal && bingoFinalQuestion ? bingoFinalQuestion : question;
@@ -208,8 +214,7 @@ export default function StagePuzzle({
         const value = result.data.toString();
         qrScanLockedRef.current = true;
         scanner.stop();
-        setQrPreviewUrl(value);
-        setQrPreviewOpen(true);
+        resolveQrPreview(value);
       },
       {
         returnDetailedScanResult: true,
@@ -256,6 +261,14 @@ export default function StagePuzzle({
   }, [showScanner]);
 
   useEffect(() => {
+    return () => {
+      if (qrResolveTimeoutRef.current) {
+        clearTimeout(qrResolveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const dialog = qrPreviewDialogRef.current;
     if (!dialog) return;
     if (qrPreviewOpen && !dialog.open) {
@@ -271,6 +284,48 @@ export default function StagePuzzle({
     value.startsWith('data:image/') ||
     /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(value);
   const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
+
+  const resolveQrPreview = (value: string) => {
+    setQrPreviewUrl(value);
+    setQrPreviewOpen(true);
+
+    if (qrResolveTimeoutRef.current) {
+      clearTimeout(qrResolveTimeoutRef.current);
+      qrResolveTimeoutRef.current = null;
+    }
+
+    if (isQrImageUrl(value)) {
+      setQrPreviewKind('image');
+      return;
+    }
+
+    if (!isHttpUrl(value)) {
+      setQrPreviewKind('unknown');
+      return;
+    }
+
+    setQrPreviewKind('loading');
+    const probe = new Image();
+    const timeoutId = setTimeout(() => {
+      setQrPreviewKind('iframe');
+    }, 2000);
+    qrResolveTimeoutRef.current = timeoutId;
+    probe.onload = () => {
+      if (qrResolveTimeoutRef.current) {
+        clearTimeout(qrResolveTimeoutRef.current);
+        qrResolveTimeoutRef.current = null;
+      }
+      setQrPreviewKind('image');
+    };
+    probe.onerror = () => {
+      if (qrResolveTimeoutRef.current) {
+        clearTimeout(qrResolveTimeoutRef.current);
+        qrResolveTimeoutRef.current = null;
+      }
+      setQrPreviewKind('iframe');
+    };
+    probe.src = value;
+  };
 
   useEffect(() => {
     const dialog = alertDialogRef.current;
@@ -705,6 +760,11 @@ export default function StagePuzzle({
         onClose={() => {
           setQrPreviewOpen(false);
           setQrPreviewUrl(null);
+          setQrPreviewKind('unknown');
+          if (qrResolveTimeoutRef.current) {
+            clearTimeout(qrResolveTimeoutRef.current);
+            qrResolveTimeoutRef.current = null;
+          }
           qrScanLockedRef.current = false;
           if (showScannerRef.current && scannerRef.current) {
             setScanError(null);
@@ -718,19 +778,23 @@ export default function StagePuzzle({
           <p className="title text-center text-lg">QR 이미지</p>
           <div className="mt-4 flex justify-center">
             {qrPreviewUrl ? (
-              isQrImageUrl(qrPreviewUrl) ? (
+              qrPreviewKind === 'image' ? (
                 <img
                   src={qrPreviewUrl}
                   alt="QR result"
                   className="max-h-[60vh] w-full rounded-xl object-contain"
                 />
-              ) : isHttpUrl(qrPreviewUrl) ? (
+              ) : qrPreviewKind === 'iframe' ? (
                 <iframe
                   title="QR page preview"
                   src={qrPreviewUrl}
                   className="h-[60vh] w-full rounded-xl border border-zinc-800 bg-black"
                   sandbox="allow-scripts allow-same-origin"
                 />
+              ) : qrPreviewKind === 'loading' ? (
+                <p className="text-center text-sm text-zinc-300">
+                  이미지 확인 중...
+                </p>
               ) : (
                 <p className="text-center text-sm text-zinc-300">
                   이미지나 웹페이지로 표시할 수 없는 QR입니다.
@@ -742,7 +806,7 @@ export default function StagePuzzle({
               </p>
             )}
           </div>
-          {qrPreviewUrl && isHttpUrl(qrPreviewUrl) ? (
+          {qrPreviewUrl && qrPreviewKind === 'iframe' ? (
             <div className="mt-3 text-center">
               <a
                 href={qrPreviewUrl}
