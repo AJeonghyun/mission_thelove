@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import JsConfetti from 'js-confetti';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { StageEntry } from './types';
@@ -14,6 +15,23 @@ function Stage6Screen({
   canAdvanceStage: boolean;
 }) {
   const [pageIndex, setPageIndex] = useState(0);
+  const confettiRef = useRef<JsConfetti | null>(null);
+
+  useEffect(() => {
+    confettiRef.current = new JsConfetti();
+    const intervalId = window.setInterval(() => {
+      confettiRef.current?.addConfetti({
+        emojis: ['💖', '💗', '💘', '💝', '💞', '❤️'],
+        emojiSize: 48,
+        confettiNumber: 100,
+      });
+    }, 1500);
+
+    return () => {
+      window.clearInterval(intervalId);
+      confettiRef.current = null;
+    };
+  }, []);
 
   return (
     <section className="flex flex-1 flex-col gap-6 min-h-0">
