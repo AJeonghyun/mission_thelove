@@ -6,6 +6,7 @@ import stage5 from './stage-5';
 import stage6 from './stage-6';
 import stage7 from './stage-7';
 import stage7Final from './stage-7-final';
+import stage7Diff from './stage-7-diff';
 import stage8 from './stage-8';
 import stage9 from './stage-9';
 import stage10 from './stage-10';
@@ -20,6 +21,7 @@ export const stages = [
   stage6,
   stage7,
   stage7Final,
+  stage7Diff,
   stage8,
   stage9,
   stage10,

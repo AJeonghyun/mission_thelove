@@ -37,7 +37,7 @@ export default function StageIntro({
 
   return (
     <section className="flex flex-1 flex-col items-center justify-between gap-6 min-h-0">
-      <div className="relative w-full max-h-[70vh] overflow-hidden rounded-3xl  shadow-2xl aspect-[4/3]">
+      <div className="relative w-full max-h-[70dvh] overflow-hidden rounded-3xl  shadow-2xl aspect-[4/3]">
         <Image
           src={images[introIndex]}
           alt={`${title} intro ${introIndex + 1}`}

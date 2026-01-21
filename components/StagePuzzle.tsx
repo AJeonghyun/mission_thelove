@@ -405,7 +405,7 @@ export default function StagePuzzle({
             </div>
           )}
           {puzzleImage && (
-            <div className="relative mt-5 w-full overflow-hidden rounded-2xl aspect-[16/9] max-h-[42vh]">
+          <div className="relative mt-5 w-full overflow-hidden rounded-2xl aspect-[16/9] max-h-[42dvh]">
               <Image
                 src={puzzleImage}
                 alt={`${title} puzzle`}
@@ -427,7 +427,7 @@ export default function StagePuzzle({
                 정답 입력
               </button>
             </DrawerTrigger>
-            <DrawerContent className="border-zinc-800 bg-zinc-950 text-white data-[vaul-drawer-direction=bottom]:bottom-[20vh] data-[state=closed]:translate-y-full data-[state=open]:translate-y-0">
+            <DrawerContent className="border-zinc-800 bg-zinc-950 text-white data-[vaul-drawer-direction=bottom]:bottom-[20dvh] data-[state=closed]:translate-y-full data-[state=open]:translate-y-0">
               <DrawerHeader>
                 <DrawerTitle>정답 입력</DrawerTitle>
               </DrawerHeader>
@@ -810,13 +810,13 @@ export default function StagePuzzle({
                 <img
                   src={qrPreviewUrl}
                   alt="QR result"
-                  className="max-h-[60vh] w-full rounded-xl object-contain"
+                  className="max-h-[60dvh] w-full rounded-xl object-contain"
                 />
               ) : qrPreviewKind === 'iframe' ? (
                 <iframe
                   title="QR page preview"
                   src={qrPreviewUrl}
-                  className="h-[60vh] w-full rounded-xl border border-zinc-800 bg-black"
+                  className="h-[60dvh] w-full rounded-xl border border-zinc-800 bg-black"
                   sandbox="allow-scripts allow-same-origin"
                 />
               ) : qrPreviewKind === 'loading' ? (

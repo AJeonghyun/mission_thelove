@@ -170,7 +170,7 @@ function Stage10ComposeScreen() {
         <div className="mt-1 text-xs text-zinc-400">
           선택한 사진이 가로 프레임에 합성됩니다.
         </div>
-        <div className="mt-4 flex max-h-[70vh] min-h-[360px] items-center justify-center overflow-auto">
+        <div className="mt-4 flex max-h-[70dvh] min-h-[360px] items-center justify-center overflow-auto">
           <div
             ref={stageWrapRef}
             className="origin-top-left"

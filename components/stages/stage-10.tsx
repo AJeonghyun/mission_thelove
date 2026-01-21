@@ -137,7 +137,7 @@ function Stage10Screen({
         </CardContent>
       </Card>
 
-      <div className="relative flex h-[70vh] min-h-[260px] max-h-[520px] flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-black/70 p-4">
+      <div className="relative flex h-[70dvh] min-h-[260px] max-h-[520px] flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-black/70 p-4">
         <div className="relative h-full w-full overflow-hidden rounded-2xl bg-black">
           <video
             ref={videoRef}
