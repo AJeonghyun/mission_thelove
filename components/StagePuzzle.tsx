@@ -270,8 +270,7 @@ export default function StagePuzzle({
   const isQrImageUrl = (value: string) =>
     value.startsWith('data:image/') ||
     /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(value);
-  const isHttpUrl = (value: string) =>
-    /^https?:\/\//i.test(value);
+  const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
 
   useEffect(() => {
     const dialog = alertDialogRef.current;
@@ -730,6 +729,7 @@ export default function StagePuzzle({
                   title="QR page preview"
                   src={qrPreviewUrl}
                   className="h-[60vh] w-full rounded-xl border border-zinc-800 bg-black"
+                  sandbox="allow-scripts allow-same-origin"
                 />
               ) : (
                 <p className="text-center text-sm text-zinc-300">
