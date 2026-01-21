@@ -5,28 +5,44 @@ const isQrImageUrl = (value: string) =>
   /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(value);
 const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
 
+const decodeCandidateUrl = (value: string) =>
+  value
+    .replace(/&amp;/g, '&')
+    .replace(/\\u002F/g, '/')
+    .replace(/\\\//g, '/');
+
 const extractImageFromHtml = (html: string, baseUrl: string) => {
   const previewMatch = html.match(
     /previewService\.pushData\([\s\S]*?"url"\s*:\s*"([^"]+)"/i,
   );
   if (previewMatch?.[1]) {
-    return new URL(previewMatch[1], baseUrl).toString();
+    const decoded = decodeCandidateUrl(previewMatch[1]);
+    return new URL(decoded, baseUrl).toString();
   }
   const ogMatch = html.match(
     /property=["']og:image["'][^>]*content=["']([^"']+)["']/i,
   );
   if (ogMatch?.[1]) {
-    return new URL(ogMatch[1], baseUrl).toString();
+    const decoded = decodeCandidateUrl(ogMatch[1]);
+    return new URL(decoded, baseUrl).toString();
   }
   const refreshMatch = html.match(
     /http-equiv=["']refresh["'][^>]*content=["'][^;]+;\s*url=([^"']+)["']/i,
   );
   if (refreshMatch?.[1]) {
-    return new URL(refreshMatch[1], baseUrl).toString();
+    const decoded = decodeCandidateUrl(refreshMatch[1]);
+    return new URL(decoded, baseUrl).toString();
   }
   const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
   if (imgMatch?.[1]) {
-    return new URL(imgMatch[1], baseUrl).toString();
+    const decoded = decodeCandidateUrl(imgMatch[1]);
+    return new URL(decoded, baseUrl).toString();
+  }
+  const absoluteMatch = html.match(
+    /https?:\/\/[^"'\\s>]+\\.(png|jpe?g|gif|webp|bmp|svg)(\\?[^"'\\s>]*)?/i,
+  );
+  if (absoluteMatch?.[0]) {
+    return decodeCandidateUrl(absoluteMatch[0]);
   }
   return null;
 };
