@@ -820,9 +820,10 @@ export default function StagePuzzle({
                   sandbox="allow-scripts allow-same-origin"
                 />
               ) : qrPreviewKind === 'loading' ? (
-                <p className="text-center text-sm text-zinc-300">
-                  이미지 확인 중...
-                </p>
+                <div className="flex flex-col items-center gap-3 text-zinc-300">
+                  <div className="h-10 w-10 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200" />
+                  <p className="text-center text-sm">이미지 불러오는 중...</p>
+                </div>
               ) : (
                 <p className="text-center text-sm text-zinc-300">
                   이미지나 웹페이지로 표시할 수 없는 QR입니다.
