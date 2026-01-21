@@ -22,6 +22,7 @@ type StagePuzzleProps = {
   questionExtra?: ReactNode;
   puzzleImage?: string;
   inputMode?: 'drawer' | 'qr' | 'coord' | 'bingo';
+  useDialogInput?: boolean;
   qrAnswers?: string[];
   bingoBoard?: string[][];
   bingoAnswer?: string[];
@@ -41,6 +42,7 @@ export default function StagePuzzle({
   questionExtra,
   puzzleImage,
   inputMode = 'drawer',
+  useDialogInput = false,
   qrAnswers,
   bingoBoard,
   bingoAnswer = [],
@@ -54,6 +56,7 @@ export default function StagePuzzle({
   canAdvanceStage,
 }: StagePuzzleProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [shouldAdvance, setShouldAdvance] = useState(false);
   const [shouldReset, setShouldReset] = useState(false);
@@ -73,6 +76,7 @@ export default function StagePuzzle({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const scannerRef = useRef<QrScanner | null>(null);
   const alertDialogRef = useRef<HTMLDialogElement | null>(null);
+  const answerDialogRef = useRef<HTMLDialogElement | null>(null);
   const bingoDialogRef = useRef<HTMLDialogElement | null>(null);
   const qrPreviewDialogRef = useRef<HTMLDialogElement | null>(null);
   const showScannerRef = useRef(showScanner);
@@ -103,6 +107,14 @@ export default function StagePuzzle({
   useEffect(() => {
     onAnswerChangeRef.current = onAnswerChange;
   }, [onAnswerChange]);
+
+  useEffect(() => {
+    setAlertMessage(null);
+    setShouldAdvance(false);
+    setShouldReset(false);
+    setIsDrawerOpen(false);
+    setIsDialogOpen(false);
+  }, [inputMode, title]);
 
   useEffect(() => {
     showScannerRef.current = showScanner;
@@ -368,6 +380,18 @@ export default function StagePuzzle({
   }, [alertMessage]);
 
   useEffect(() => {
+    const dialog = answerDialogRef.current;
+    if (!dialog || inputMode !== 'drawer' || !useDialogInput) return;
+    if (isDialogOpen && !dialog.open) {
+      dialog.showModal();
+      return;
+    }
+    if (!isDialogOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [inputMode, isDialogOpen, useDialogInput]);
+
+  useEffect(() => {
     const dialog = bingoDialogRef.current;
     if (!dialog) return;
     if (bingoAlertOpen && !dialog.open) {
@@ -405,7 +429,7 @@ export default function StagePuzzle({
             </div>
           )}
           {puzzleImage && (
-          <div className="relative mt-5 w-full overflow-hidden rounded-2xl aspect-[16/9] max-h-[42dvh]">
+            <div className="relative mt-5 w-full overflow-hidden rounded-2xl aspect-[16/9] max-h-[42dvh]">
               <Image
                 src={puzzleImage}
                 alt={`${title} puzzle`}
@@ -420,7 +444,7 @@ export default function StagePuzzle({
       </Card>
 
       <div className="flex flex-wrap items-center justify-center gap-4 mb-6 mt-5">
-        {inputMode === 'drawer' && (
+        {inputMode === 'drawer' && !useDialogInput && (
           <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <DrawerTrigger asChild>
               <button type="button" className="nes-btn is-primary">
@@ -467,6 +491,17 @@ export default function StagePuzzle({
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
+        )}
+        {inputMode === 'drawer' && useDialogInput && (
+          <div className="flex w-full justify-center">
+            <button
+              type="button"
+              className="nes-btn is-primary"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              정답 입력
+            </button>
+          </div>
         )}
         {inputMode === 'qr' && (
           <div className="w-full">
@@ -852,15 +887,63 @@ export default function StagePuzzle({
           </menu>
         </form>
       </dialog>
+      {inputMode === 'drawer' && useDialogInput ? (
+        <dialog
+          ref={answerDialogRef}
+          className="nes-dialog is-dark is-rounded w-[90vw] max-w-[520px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+          onClose={() => setIsDialogOpen(false)}
+        >
+          <form
+            method="dialog"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleSubmit();
+            }}
+          >
+            <p className="title text-center">정답 입력</p>
+            <div className="mt-4 flex justify-center gap-4">
+              {answer.map((value, index) => (
+                <Input
+                  key={`dialog-answer-${index}`}
+                  value={value}
+                  onChange={(event) =>
+                    onAnswerChange(index, event.target.value.slice(-1))
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') handleSubmit();
+                  }}
+                  maxLength={1}
+                  className="h-20 w-20 rounded-2xl border-zinc-700 bg-zinc-950 text-center text-4xl text-white font-[var(--font-geist-sans)] tracking-wide"
+                  placeholder="?"
+                />
+              ))}
+            </div>
+            <menu className="dialog-menu mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="nes-btn"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                닫기
+              </button>
+              <button className="nes-btn is-primary" type="submit">
+                제출
+              </button>
+            </menu>
+          </form>
+        </dialog>
+      ) : null}
       <dialog
         ref={alertDialogRef}
-        className={`nes-dialog is-rounded w-[90vw] max-w-[520px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${
-          shouldAdvance
-            ? 'bg-emerald-900 text-2xl items-center justify-center text-white'
+        className="nes-dialog is-rounded w-[90vw] max-w-[520px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl items-center justify-center text-white"
+        style={{
+          backgroundColor: shouldAdvance
+            ? '#047857'
             : shouldReset
-              ? 'bg-rose-900 text-2xl items-center justify-center text-white'
-              : 'is-dark'
-        }`}
+              ? '#be123c'
+              : '#111827',
+          backgroundImage: 'none',
+        }}
         onClose={() => {
           setAlertMessage(null);
           setShouldAdvance(false);
@@ -873,6 +956,9 @@ export default function StagePuzzle({
             <button
               className="nes-btn "
               onClick={() => {
+                setAlertMessage(null);
+                setShouldAdvance(false);
+                setShouldReset(false);
                 if (shouldAdvance && canAdvanceStage) onNextStage();
                 if (shouldReset) {
                   setIsDrawerOpen(false);

@@ -65,6 +65,7 @@ const stage1: StageEntry = {
       question=""
       questionExtra={questionOverlay}
       inputMode="drawer"
+      useDialogInput
       answer={answer}
       status={status}
       onAnswerChange={onAnswerChange}
