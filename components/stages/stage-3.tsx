@@ -1,7 +1,7 @@
 import StagePuzzle from '../StagePuzzle';
 import type { StageEntry } from './types';
 
-const puzzleTitle = '사탄의 좌표';
+const puzzleTitle = '사탄의 복도';
 const question =
   '사탄은 진실을 지우지 않았다.\n그는 그것을 숫자 속에 숨겼다.\n\n앞선 방에서 너희가 발견한 세 개의 숫자들은 단순한 코드가 아니다.';
 const highlightNumbers = [

@@ -7,7 +7,7 @@ import type { StageEntry } from './types';
 
 const puzzleTitle = '사탄의 수수께끼';
 const question = '배치를 완성했다면\n정답을 입력하세요.';
-const hintPassword = '7777';
+const hintPassword = '1004';
 const hintMessage = '오병이어 숫자를 잘 생각해보세요';
 
 function Stage7FinalScreen({

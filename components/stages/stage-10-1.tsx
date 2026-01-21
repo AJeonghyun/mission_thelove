@@ -73,9 +73,33 @@ function Stage10ComposeScreen() {
         cacheBust: true,
         pixelRatio: 2,
       });
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      const fileName = 'fourcut.png';
+      const file = new File([blob], fileName, { type: 'image/png' });
+      const isIOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.userAgent.includes('Mac') &&
+          navigator.maxTouchPoints > 1);
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'fourcut' });
+        return;
+      }
+
+      if (isIOS) {
+        const objectUrl = URL.createObjectURL(blob);
+        const nextWindow = window.open(objectUrl, '_blank');
+        if (!nextWindow) {
+          window.location.href = objectUrl;
+        }
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
+        return;
+      }
+
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = 'fourcut.png';
+      link.download = fileName;
       link.click();
     } catch (err) {
       setError('이미지 저장에 실패했습니다.');

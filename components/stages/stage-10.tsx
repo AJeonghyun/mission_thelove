@@ -11,7 +11,7 @@ const CAPTURE_COUNT = 4;
 const puzzleTitle = '사랑의 증거';
 const question = '카메라로 4장의 사진을 촬영하세요.';
 
-type CountdownValue = 3 | 2 | 1 | 'SNAP' | null;
+type CountdownValue = number | 'SNAP' | null;
 
 function Stage10Screen({
   onNextStage,
@@ -81,12 +81,10 @@ function Stage10Screen({
   };
 
   const runCountdown = async () => {
-    setCountdown(3);
-    await sleep(700);
-    setCountdown(2);
-    await sleep(700);
-    setCountdown(1);
-    await sleep(700);
+    for (let tick = 10; tick >= 1; tick -= 1) {
+      setCountdown(tick);
+      await sleep(1000);
+    }
     setCountdown('SNAP');
     await sleep(350);
     setCountdown(null);
