@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { toPng } from 'html-to-image';
+import type Konva from 'konva';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { StageEntry } from './types';
@@ -24,6 +25,7 @@ const PhotoFrameStage = dynamic(
 function Stage10ComposeScreen() {
   const router = useRouter();
   const stageWrapRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<Konva.Stage | null>(null);
   const [captures, setCaptures] = useState<string[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -69,10 +71,15 @@ function Stage10ComposeScreen() {
   const handleSave = async () => {
     if (!stageWrapRef.current) return;
     try {
-      const dataUrl = await toPng(stageWrapRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-      });
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
+      const dataUrl =
+        stageRef.current?.toDataURL({ pixelRatio: 2 }) ??
+        (await toPng(stageWrapRef.current, {
+          cacheBust: true,
+          pixelRatio: 2,
+        }));
       const response = await fetch(dataUrl);
       const blob = await response.blob();
       const fileName = 'fourcut.png';
@@ -176,6 +183,7 @@ function Stage10ComposeScreen() {
               photos={selected}
               slotLayout={slotLayout}
               theme={theme}
+              stageRef={stageRef}
             />
           </div>
         </div>

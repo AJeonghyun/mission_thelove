@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type Konva from 'konva';
 import { Stage, Layer, Rect, Image as KonvaImage, Text } from 'react-konva';
 
 type SlotLayout = {
@@ -20,6 +21,7 @@ type PhotoFrameStageProps = {
   photos: string[];
   slotLayout: SlotLayout;
   theme?: 'light' | 'dark';
+  stageRef?: React.Ref<Konva.Stage>;
 };
 
 const useKonvaImage = (src: string | null) => {
@@ -66,6 +68,7 @@ export default function PhotoFrameStage({
   photos,
   slotLayout,
   theme = 'light',
+  stageRef,
 }: PhotoFrameStageProps) {
   const isDark = theme === 'dark';
   const backgroundColor = isDark ? '#0b0b0f' : '#ffffff';
@@ -78,7 +81,7 @@ export default function PhotoFrameStage({
   ];
 
   return (
-    <Stage width={stageWidth} height={stageHeight}>
+    <Stage ref={stageRef} width={stageWidth} height={stageHeight}>
       <Layer>
         <Rect
           x={0}

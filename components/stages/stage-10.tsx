@@ -34,7 +34,7 @@ function Stage10Screen({
     const startCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } },
+          video: { facingMode: { ideal: 'user' } },
           audio: false,
         });
         if (!isActive) {
