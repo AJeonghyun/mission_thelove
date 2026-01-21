@@ -88,6 +88,7 @@ export default function StagePuzzle({
   const qrResolveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const qrResolveIdRef = useRef(0);
   const isBingoFinal = inputMode === 'bingo' && bingoFinalUnlocked;
   const displayQuestion =
     isBingoFinal && bingoFinalQuestion ? bingoFinalQuestion : question;
@@ -214,7 +215,7 @@ export default function StagePuzzle({
         const value = result.data.toString();
         qrScanLockedRef.current = true;
         scanner.stop();
-        resolveQrPreview(value);
+        void resolveQrPreview(value);
       },
       {
         returnDetailedScanResult: true,
@@ -285,7 +286,28 @@ export default function StagePuzzle({
     /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(value);
   const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
 
-  const resolveQrPreview = (value: string) => {
+  const extractImageFromHtml = (html: string, baseUrl: string) => {
+    const ogMatch = html.match(
+      /property=["']og:image["'][^>]*content=["']([^"']+)["']/i,
+    );
+    if (ogMatch?.[1]) {
+      return new URL(ogMatch[1], baseUrl).toString();
+    }
+    const refreshMatch = html.match(
+      /http-equiv=["']refresh["'][^>]*content=["'][^;]+;\s*url=([^"']+)["']/i,
+    );
+    if (refreshMatch?.[1]) {
+      return new URL(refreshMatch[1], baseUrl).toString();
+    }
+    const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (imgMatch?.[1]) {
+      return new URL(imgMatch[1], baseUrl).toString();
+    }
+    return null;
+  };
+
+  const resolveQrPreview = async (value: string) => {
+    const resolveId = (qrResolveIdRef.current += 1);
     setQrPreviewUrl(value);
     setQrPreviewOpen(true);
 
@@ -309,26 +331,47 @@ export default function StagePuzzle({
       setQrPreviewKind('iframe');
       return;
     }
-    const probe = new window.Image();
-    const timeoutId = setTimeout(() => {
-      setQrPreviewKind('iframe');
-    }, 2000);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
     qrResolveTimeoutRef.current = timeoutId;
-    probe.onload = () => {
+
+    try {
+      const response = await fetch(value, {
+        redirect: 'follow',
+        signal: controller.signal,
+      });
+      if (qrResolveIdRef.current !== resolveId) return;
+
+      const contentType = response.headers.get('content-type') ?? '';
+      if (contentType.startsWith('image/')) {
+        setQrPreviewUrl(response.url || value);
+        setQrPreviewKind('image');
+        return;
+      }
+
+      if (contentType.includes('text/html')) {
+        const html = await response.text();
+        if (qrResolveIdRef.current !== resolveId) return;
+        const extracted = extractImageFromHtml(html, response.url || value);
+        if (extracted && isQrImageUrl(extracted)) {
+          setQrPreviewUrl(extracted);
+          setQrPreviewKind('image');
+          return;
+        }
+      }
+    } catch (error) {
+      // Ignore fetch failures and fall back to iframe.
+    } finally {
       if (qrResolveTimeoutRef.current) {
         clearTimeout(qrResolveTimeoutRef.current);
         qrResolveTimeoutRef.current = null;
       }
-      setQrPreviewKind('image');
-    };
-    probe.onerror = () => {
-      if (qrResolveTimeoutRef.current) {
-        clearTimeout(qrResolveTimeoutRef.current);
-        qrResolveTimeoutRef.current = null;
-      }
+    }
+
+    if (qrResolveIdRef.current === resolveId) {
       setQrPreviewKind('iframe');
-    };
-    probe.src = value;
+    }
   };
 
   useEffect(() => {
