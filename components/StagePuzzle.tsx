@@ -74,10 +74,14 @@ export default function StagePuzzle({
   const scannerRef = useRef<QrScanner | null>(null);
   const alertDialogRef = useRef<HTMLDialogElement | null>(null);
   const bingoDialogRef = useRef<HTMLDialogElement | null>(null);
+  const qrPreviewDialogRef = useRef<HTMLDialogElement | null>(null);
   const showScannerRef = useRef(showScanner);
   const onAnswerChangeRef = useRef(onAnswerChange);
   const wrongTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const correctTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const qrScanLockedRef = useRef(false);
+  const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
+  const [qrPreviewOpen, setQrPreviewOpen] = useState(false);
   const isBingoFinal = inputMode === 'bingo' && bingoFinalUnlocked;
   const displayQuestion =
     isBingoFinal && bingoFinalQuestion ? bingoFinalQuestion : question;
@@ -197,15 +201,15 @@ export default function StagePuzzle({
     ).toString();
 
     setScanError(null);
-    let hasNavigated = false;
     const scanner = new QrScanner(
       videoRef.current,
       (result) => {
-        if (!result?.data || hasNavigated) return;
+        if (!result?.data || qrScanLockedRef.current) return;
         const value = result.data.toString();
-        hasNavigated = true;
+        qrScanLockedRef.current = true;
         scanner.stop();
-        window.location.assign(value);
+        setQrPreviewUrl(value);
+        setQrPreviewOpen(true);
       },
       {
         returnDetailedScanResult: true,
@@ -250,6 +254,22 @@ export default function StagePuzzle({
       setScanError(null);
     }
   }, [showScanner]);
+
+  useEffect(() => {
+    const dialog = qrPreviewDialogRef.current;
+    if (!dialog) return;
+    if (qrPreviewOpen && !dialog.open) {
+      dialog.showModal();
+      return;
+    }
+    if (!qrPreviewOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [qrPreviewOpen]);
+
+  const isQrImageUrl = (value: string) =>
+    value.startsWith('data:image/') ||
+    /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(value);
 
   useEffect(() => {
     const dialog = alertDialogRef.current;
@@ -678,6 +698,41 @@ export default function StagePuzzle({
           </div>
         )}
       </div>
+      <dialog
+        ref={qrPreviewDialogRef}
+        className="nes-dialog is-rounded w-[90vw] max-w-[560px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 is-dark"
+        onClose={() => {
+          setQrPreviewOpen(false);
+          setQrPreviewUrl(null);
+          qrScanLockedRef.current = false;
+          if (showScannerRef.current && scannerRef.current) {
+            setScanError(null);
+            scannerRef.current
+              .start()
+              .catch(() => setScanError('카메라 권한을 확인해 주세요.'));
+          }
+        }}
+      >
+        <form method="dialog">
+          <p className="title text-center text-lg">QR 이미지</p>
+          <div className="mt-4 flex justify-center">
+            {qrPreviewUrl && isQrImageUrl(qrPreviewUrl) ? (
+              <img
+                src={qrPreviewUrl}
+                alt="QR result"
+                className="max-h-[60vh] w-full rounded-xl object-contain"
+              />
+            ) : (
+              <p className="text-center text-sm text-zinc-300">
+                이미지로 표시할 수 없는 QR입니다.
+              </p>
+            )}
+          </div>
+          <menu className="dialog-menu mt-4 flex justify-end">
+            <button className="nes-btn">확인</button>
+          </menu>
+        </form>
+      </dialog>
       <dialog
         ref={alertDialogRef}
         className={`nes-dialog is-rounded w-[90vw] max-w-[520px] fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${
