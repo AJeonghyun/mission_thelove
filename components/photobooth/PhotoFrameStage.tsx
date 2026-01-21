@@ -40,24 +40,28 @@ const useKonvaImage = (src: string | null) => {
   return image;
 };
 
-const getCrop = (image: HTMLImageElement, width: number, height: number) => {
+const getContainPlacement = (
+  image: HTMLImageElement,
+  width: number,
+  height: number,
+) => {
   const imageRatio = image.width / image.height;
   const targetRatio = width / height;
   if (imageRatio > targetRatio) {
-    const cropWidth = image.height * targetRatio;
+    const drawHeight = width / imageRatio;
     return {
-      cropX: (image.width - cropWidth) / 2,
-      cropY: 0,
-      cropWidth,
-      cropHeight: image.height,
+      drawWidth: width,
+      drawHeight,
+      offsetX: 0,
+      offsetY: (height - drawHeight) / 2,
     };
   }
-  const cropHeight = image.width / targetRatio;
+  const drawWidth = height * imageRatio;
   return {
-    cropX: 0,
-    cropY: (image.height - cropHeight) / 2,
-    cropWidth: image.width,
-    cropHeight,
+    drawWidth,
+    drawHeight: height,
+    offsetX: (width - drawWidth) / 2,
+    offsetY: 0,
   };
 };
 
@@ -117,7 +121,7 @@ export default function PhotoFrameStage({
           const slotY =
             slotLayout.frameY +
             index * (slotLayout.slotHeight + slotLayout.gap);
-          const crop = getCrop(
+          const placement = getContainPlacement(
             image,
             slotLayout.slotWidth,
             slotLayout.slotHeight,
@@ -126,11 +130,10 @@ export default function PhotoFrameStage({
             <KonvaImage
               key={`slot-image-${index}`}
               image={image}
-              x={slotX}
-              y={slotY}
-              width={slotLayout.slotWidth}
-              height={slotLayout.slotHeight}
-              {...crop}
+              x={slotX + placement.offsetX}
+              y={slotY + placement.offsetY}
+              width={placement.drawWidth}
+              height={placement.drawHeight}
             />
           );
         })}

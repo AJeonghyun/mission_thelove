@@ -692,7 +692,7 @@ export default function StagePuzzle({
                 <Input
                   value={answer[0] ?? ''}
                   onChange={(event) => onAnswerChange(0, event.target.value)}
-                  className="h-12 rounded-2xl border-zinc-700 bg-zinc-950 px-4 text-center text-base text-white sm:text-lg"
+                  className="h-12 w-full max-w-xl rounded-2xl border-zinc-700 bg-zinc-950 px-4 text-center text-base text-white sm:text-lg"
                   placeholder="말씀 구절을 입력하세요"
                 />
                 <div className="flex justify-center gap-3">
