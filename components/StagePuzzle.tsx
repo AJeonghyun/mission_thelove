@@ -286,32 +286,6 @@ export default function StagePuzzle({
     /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(value);
   const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
 
-  const extractImageFromHtml = (html: string, baseUrl: string) => {
-    const previewMatch = html.match(
-      /previewService\.pushData\([\s\S]*?"url"\s*:\s*"([^"]+)"/i,
-    );
-    if (previewMatch?.[1]) {
-      return new URL(previewMatch[1], baseUrl).toString();
-    }
-    const ogMatch = html.match(
-      /property=["']og:image["'][^>]*content=["']([^"']+)["']/i,
-    );
-    if (ogMatch?.[1]) {
-      return new URL(ogMatch[1], baseUrl).toString();
-    }
-    const refreshMatch = html.match(
-      /http-equiv=["']refresh["'][^>]*content=["'][^;]+;\s*url=([^"']+)["']/i,
-    );
-    if (refreshMatch?.[1]) {
-      return new URL(refreshMatch[1], baseUrl).toString();
-    }
-    const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-    if (imgMatch?.[1]) {
-      return new URL(imgMatch[1], baseUrl).toString();
-    }
-    return null;
-  };
-
   const resolveQrPreview = async (value: string) => {
     const resolveId = (qrResolveIdRef.current += 1);
     setQrPreviewUrl(value);
@@ -338,40 +312,34 @@ export default function StagePuzzle({
       return;
     }
 
-    let didTimeout = false;
-    const timeoutId = setTimeout(() => {
-      if (qrResolveIdRef.current !== resolveId) return;
-      didTimeout = true;
-      setQrPreviewKind('iframe');
-    }, 2000);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
     qrResolveTimeoutRef.current = timeoutId;
 
     try {
-      const response = await fetch(value, {
-        redirect: 'follow',
-      });
-      if (qrResolveIdRef.current !== resolveId || didTimeout) return;
+      const response = await fetch(
+        `/api/qr-preview?url=${encodeURIComponent(value)}`,
+        { signal: controller.signal },
+      );
+      if (qrResolveIdRef.current !== resolveId) return;
 
-      if (response.type === 'opaque') {
+      if (!response.ok) {
         setQrPreviewKind('iframe');
         return;
       }
-      const contentType = response.headers.get('content-type') ?? '';
-      if (contentType.startsWith('image/')) {
-        setQrPreviewUrl(response.url || value);
+      const data = (await response.json()) as {
+        type: 'image' | 'iframe' | 'unknown';
+        url?: string;
+      };
+      if (data.type === 'image' && data.url) {
+        setQrPreviewUrl(data.url);
         setQrPreviewKind('image');
         return;
       }
-
-      if (contentType.includes('text/html')) {
-        const html = await response.text();
-        if (qrResolveIdRef.current !== resolveId || didTimeout) return;
-        const extracted = extractImageFromHtml(html, response.url || value);
-        if (extracted && isQrImageUrl(extracted)) {
-          setQrPreviewUrl(extracted);
-          setQrPreviewKind('image');
-          return;
-        }
+      if (data.type === 'iframe' && data.url) {
+        setQrPreviewUrl(data.url);
+        setQrPreviewKind('iframe');
+        return;
       }
     } catch (error) {
       // Ignore fetch failures and fall back to iframe.
@@ -382,7 +350,7 @@ export default function StagePuzzle({
       }
     }
 
-    if (qrResolveIdRef.current === resolveId && !didTimeout) {
+    if (qrResolveIdRef.current === resolveId) {
       setQrPreviewKind('iframe');
     }
   };
