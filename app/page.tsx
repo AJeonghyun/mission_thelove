@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StageIntro from '../components/StageIntro';
 import { stages } from '../components/stages';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,8 @@ export default function Home() {
   const [introIndex, setIntroIndex] = useState(0);
   const [input, setInput] = useState(['', '']);
   const [status, setStatus] = useState<'idle' | 'wrong' | 'cleared'>('idle');
+  const bgmRef = useRef<HTMLAudioElement | null>(null);
+  const hasStartedBgmRef = useRef(false);
 
   const stage = stages[stageIndex];
   const inIntro = introIndex < stage.introImages.length;
@@ -99,8 +101,25 @@ export default function Home() {
     setIntroIndex((prev) => prev - 1);
   };
 
+  const startBgm = useCallback(() => {
+    const audio = bgmRef.current;
+    if (!audio) return;
+    if (hasStartedBgmRef.current && !audio.paused) return;
+    const playPromise = audio.play();
+    if (playPromise) {
+      playPromise.catch(() => {});
+    }
+    hasStartedBgmRef.current = true;
+  }, []);
+
   return (
     <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100">
+      <audio
+        ref={bgmRef}
+        src="/music/The%20Vinciguerra%20Affair%20-%20Daniel%20Pemberton.mp3"
+        loop
+        preload="auto"
+      />
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 overflow-y-auto px-6 py-8 sm:px-10 md:px-16 md:py-10 lg:max-w-7xl lg:px-20 md:[@media(orientation:landscape)]:py-6">
         <header className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-zinc-500">
           <span>MISSION:THELOVE</span>
@@ -118,6 +137,7 @@ export default function Home() {
             isLast={isLastIntro}
             onPrev={goPrevIntro}
             onNext={goNextIntro}
+            onInteract={startBgm}
           />
         ) : (
           <>
@@ -133,24 +153,6 @@ export default function Home() {
               onNextStage: goNextStage,
               canAdvanceStage,
             })}
-            <div className="flex items-center justify-center gap-3 ">
-              <Button
-                variant="outline"
-                className="rounded-full border-black/20 text-black "
-                onClick={goPrevStage}
-                disabled={!canGoPrevStage}
-              >
-                이전 문제
-              </Button>
-              <Button
-                variant="outline"
-                className="rounded-full bg-black text-white border-white/20"
-                onClick={goNextStage}
-                disabled={!canAdvanceStage}
-              >
-                다음 문제
-              </Button>
-            </div>
           </>
         )}
       </main>

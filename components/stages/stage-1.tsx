@@ -22,9 +22,9 @@ const puzzleTitle = '😈 사탄의 암호 😈';
 const question = '위에 보이는 네 개의 이름은 사탄이 남긴 거짓된 배열이다.';
 const questionOverlay = (
   <div className="relative w-full max-h-[60dvh] overflow-hidden rounded-3xl aspect-[4/3] text-2xl">
-    <div className="absolute inset-0 flex flex-col items-center justify-start gap-2 p-8 text-center">
+    <div className="absolute inset-0 flex flex-col items-center justify-start p-8 text-center">
       <p className="whitespace-pre-line">{question}</p>
-      <div className="relative w-[50%] max-w-[860px] aspect-[4/3]">
+      <div className="relative w-[60%] max-w-[860px] aspect-[4/3]">
         <Image
           src="/game1.webp"
           alt="Game 1"

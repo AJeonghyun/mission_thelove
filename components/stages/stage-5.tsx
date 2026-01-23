@@ -278,7 +278,7 @@ function Stage5Screen({
       >
         <form method="dialog">
           <p className="title text-center">
-            안내자는 지금 아너스홀로 떠나세요.
+            안내자는 지금 B1층 아너스홀로 떠나세요.
           </p>
           <menu className="dialog-menu flex justify-end">
             <button

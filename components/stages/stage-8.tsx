@@ -157,7 +157,7 @@ function Stage8Screen({
               className="rounded-full bg-white px-8 text-black hover:bg-white/90"
               onClick={() => {
                 const isCorrect =
-                  answerInput.trim() === '방 안에 있는 선물상자를 찾으세요';
+                  answerInput.trim() === '방 안에 있는 선물상자를 찾아보세요';
                 if (!isCorrect) {
                   setAnswerStatus('wrong');
                   setAlertType('wrong');

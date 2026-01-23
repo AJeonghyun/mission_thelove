@@ -12,6 +12,7 @@ type StageIntroProps = {
   isLast: boolean;
   onPrev: () => void;
   onNext: () => void;
+  onInteract?: () => void;
 };
 
 export default function StageIntro({
@@ -25,6 +26,7 @@ export default function StageIntro({
   isLast,
   onPrev,
   onNext,
+  onInteract,
 }: StageIntroProps) {
   const narrationIndex = introIndex - 2;
   const hasNarration =
@@ -36,7 +38,10 @@ export default function StageIntro({
   const showDevil = introIndex >= 1 && !showOverlay;
 
   return (
-    <section className="flex flex-1 flex-col items-center justify-between gap-6 min-h-0">
+    <section
+      className="flex flex-1 flex-col items-center justify-between gap-6 min-h-0"
+      onPointerDownCapture={onInteract}
+    >
       <div className="relative w-full max-h-[70dvh] overflow-hidden rounded-3xl  shadow-2xl aspect-[4/3]">
         <Image
           src={images[introIndex]}
