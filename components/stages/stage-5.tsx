@@ -277,7 +277,7 @@ function Stage5Screen({
         onClose={() => setAlertOpen(false)}
       >
         <form method="dialog">
-          <p className="title text-center">
+          <p className="title text-center text-lg">
             안내자는 지금 B1층 아너스홀로 떠나세요.
           </p>
           <menu className="dialog-menu flex justify-end">
